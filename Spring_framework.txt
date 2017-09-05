@@ -1,0 +1,79 @@
+Spring Beans:
+A bean is an object that is instantiated, assembled, and otherwise managed by a Spring IoC container. These beans are created with the configuration metadata that you supply to the container, for example, in the form of XML definitions.
+Spring beans are just object instances that are managed by the Spring container, namely, they are created and wired by the framework and put into a "bag of objects" (the container) from where you can get them later.The "wiring" part there is what dependency injection is all about, what it means is that you can just say "I will need this thing" and the framework will follow some rules to get you the proper instance.
+Spring beans are classes. Instead of instantiating a class (using new), you get an instance as a bean casted to your class type from the application context, where the bean is what you configured in the application context configuration. This way, the whole application maintains singleton-scope instance throughout the application. All beans are initialized following their configuration order right after the application context is instantiated. Even if you don't get any beans in your application, all beans instances are already created the moment after you created the application context.
+Spring beans are just object instances that are managed by the Spring IOC container.
+
+Normally you declare all the beans or components in XML bean configuration file, so that Spring container can detect and register your beans or components. Actually, Spring is able to auto scan, detect and instantiate your beans from pre-defined project package
+
+Autowiring:-
+==========
+When spring sees @Autowired inside a particular class, Spring will look for the class that matches the property in the applicationContext, and inject it automatically. If you have more than 1 UserService bean, then you'll have to qualify which one it should use.
+
+"application-context.xml"
+<beans ...>
+    <bean id="userService" class="com.foo.UserServiceImpl"/>
+    <bean id="fooController" class="com.foo.FooController"/>
+</beans>
+
+.Spring IOC container carry the Bag of Bean.Bean creation, maintain and deletion are the responsibilities of Spring Container.
+.We can put the bean in to Spring by Wiring and Auto Wiring.
+.Wiring mean we manually configure it into the XML file.
+.Auto Wiring mean we put the annotations in the Java file then Spring automatically scan the root-context where java configuration file, make it and put into the bag of Spring.
+
+First, and most important - all Spring beans are managed - they "live" inside a container, called "application context".
+Second, each application has an entry point to that context. Web applications have a Servlet, JSF uses a el-resolver, etc. Also, there is a place where the application context is bootstrapped and all beans - autowired. In web applications this can be a startup listener.
+Autowiring happens by placing an instance of one bean into the desired field in an instance of another bean. Both classes should be beans, i.e. they should be defined to live in the application context.
+What is "living" in the application context? This means that the context instantiates the objects, not you. I.e. - you never make new UserServiceImpl() - the container finds each injection point and sets an instance there.
+====================
+Auto Components Scan Annotation Types.In Spring 2.5, there are 4 types of auto components scan annotation types
+@Component – Indicates a auto scan component.
+@Repository – Indicates DAO component in the persistence layer.
+@Service – Indicates a Service component in the business layer.
+@Controller – Indicates a controller component in the presentation layer.
+
+spring mvc is request driven framework designed around a central servlet which dispatches requests different controllers.
+spring dispatcher servlet is integrated with spring IOC and hence allows every feature spring has.
+
+Requests -->
+Dispatcher Servlet --> Handler Mapping
+Dispatcher Servlet --> Handler Adapter ->(the interface which facilitates the handling the HTTP requests in a flexible way)
+
+HandlerAdaptor:-
+A HandlerMapping maps a method to a URL, so the DispatcherServlet knows which method should be invoked by a specific request. Then the DispatcherServlet use a HandlerAdapter to invoke the method.
+Why DispatcherServlet does not invoke a method directly? Because there are many ways to invoke a method, like annotation, xml etc. HandlerAdapter de-couples the DispatcherServlet and the invoked actions.
+You can find Adapter in HandlerAdapter and that part of name comes from Adapter pattern. Adapter is like a bridge between two objects and HandlerAdapter is a bridge between handler object and dispatcher servlet.T
+The handle() method inside the HandleAdaptor interface is responsible for invoking the handler by passing the HttpServletRequest and HttpServletResponse object as the parameter. The handler then executes the application logic and returns a ModelAndView object, which is then processed by the DispatcherServlet.
+AnnotationMethodHandlerAdapter:-
+This adapter class is used to execute the methods that are annotated with @RequestMapping annotation. It is used to map the methods based on HTTP methods and HTTP paths.
+The <context:component-scan/> tag is used to specify the package to scan for controller classes.
+
+DispatcherServlet receives the request.
+DispatcherServlet dispatches the task of selecting an appropriate controller to HandlerMapping. HandlerMapping selects the controller which is mapped to the incoming request URL and returns the (selected Handler) and Controller to DispatcherServlet.
+DispatcherServlet dispatches the task of executing of business logic of Controller to HandlerAdapter.
+HandlerAdapter calls the business logic process of Controller.
+Controller executes the business logic, sets the processing result in Model and returns the logical name of view to HandlerAdapter.
+DispatcherServlet dispatches the task of resolving the View corresponding to the View name to ViewResolver. ViewResolver returns the View mapped to View name.
+DispatcherServlet dispatches the rendering process to returned View.
+View renders Model data and returns the response.
+
+Managing Concurrent Access in a Singleton Session Bean @singleton:-
+=================================================================
+Singleton session beans are designed for concurrent access, situations in which many clients need to access a single instance of a session bean at the same time. A singleton’s client needs only a reference to a singleton in order to invoke any business methods exposed by the singleton and doesn’t need to worry about any other clients that may be simultaneously invoking business methods on the same singleton.
+
+When creating a singleton session bean, concurrent access to the singleton’s business methods can be controlled in two ways: container-managed concurrency and bean-managed concurrency.
+
+@RequestParam vs @PathVariable:- also need to check regarding the @pathparam
+================================
+@RequestParam: used for accessing the values from the query parameters from the url
+@PathVariable:used for accessing the values from the URI template
+http://localhost:8080/MyApp/user/1234/invoices?date=12-05-2013
+@RequestMapping(value="/user/{userId}/invoices", method = RequestMethod.GET)
+public List<Invoice> listUsersInvoices(
+            @PathVariable("userId") int user,
+            @RequestParam(value = "date", required = false) Date dateOrNull) {
+}
+
+ModelAndView(usually, the return type for the methods inside the controller) is a wrapper class that spring uses to hold the data and the second one is a reference to the view that we want spring to use for now.view can be used to provide the path for a jsp page
+
+@ResponseBody:

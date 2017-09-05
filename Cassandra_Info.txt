@@ -1,0 +1,194 @@
+Cassandra is not ACID complaint- Atomicity,consistency,Isolation,Durability.
+Atomicity;- All or nothing - if one part of the transaction fails
+Consistency- Ensuring that it abides by all the rules, contraints,cascades,errors etc
+Isolation-the visibility of the changes made in the database to other users.
+Durability- a committed transaction always stay committed.
+
+MongoDB vs Cassandra:-
+=======================
+Expressive object model - mongoDb
+Secondary Indexes - MongoDB
+No Downtime on node failure - Cassandra
+High write Thoughput - Cassandra
+query language support - cassandra
+Transactional Data - Cassandra
+
+sudo chown -R $USER:$GROUP /var/lib/cassandra - for providing the provision to the directory
+ps  aux | grep cass
+
+bin/dse cassandra -f -> to start the cassandra in forground mode
+netstat -ap tcp | grep -i "listen"
+
+
+good linear scaling
+alwags on uptime
+data can be stored close to clients
+
+CREATE KEYSPACE prod_details WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true;
+COPY activity (home_id, datetime, event, code_used) FROM '/home/vm1/Desktop/Files/Chapter 7/events.csv' WITH header = true AND delimiter = '|';
+COPY home (home_id, address, city, state, zip, contact_name, phone, alt_phone, phone_password, email, main_code, guest_code) FROM '/home/vm1/Desktop/Files/Chapter 7/homes.csv' WITH header = true AND delimiter = '|';
+bin/sstable2json /var/lib/cassandra/data/home_security/activity/home_security-activity-jb-1-Data.db
+
+Cluster cluster = Cluster.addContactPoint("localhost").build();
+Session session = cluster.connect();
+String vehicle_Id = "asd23123";
+String track_date = "2017-08-10";
+String queryString = "select time,latitude,longitude from vehicle_tracker.location where vehicle_id=''" + vehicle_id+"' And date ='" + trackdate+"'";
+
+ResultSet rs = session.execute();
+start_native_transport : true by default
+
+
+ALTER TABLE home_security.activity (
+    home_id text,
+    datetime timestamp,
+    code_used text,
+    event text,
+    PRIMARY KEY ((home_id, datetime),code_used)
+) WITH CLUSTERING ORDER BY (datetime DESC);
+
+update is another write in cassandra.
+All updates are written to memtable and then flushed to a new sstable once the memtable is full.for the read request, the one with latest timestamp is provided as output. IT also gets timestamp between the memtable and the existing sstable.
+check the data folder and inside the keyspace/table
+bin/nodetool flush <keyspace> <table>
+
+delete - delete a certain row or value in a table
+TRUNCATE -  Delete all the rows in a table
+DROP- to delete a table
+
+A tombstone is created whenever data is marked for deletion.
+The data is not immediately deleted so that other nodes can also replicate the same and also for the ones which is down as well so that it doesnt update other nodes with old data once it is back up.
+The minimum amount of time that must pass before a delete can occur - gc_grace_seconds property for the table.- default -10 days
+Data will be deleted only during compaction- when SStables are refactored or combined to improve performance reads due to lesser sstables are getting more space - this is part of the keyspace property which could be seen on describing the keyspace.
+nodetool compact - manual compaction.
+
+i.e deletion of data will happen after gc_grace_seconds and then next compaction delete the stale data.
+once we have 4 or n sstables of similar size, it will take the contents and merge them together and create a new table.
+Large Number of Tombstones Causes Latency and Heap Pressure
+
+Time to live TTL ie. expiration time for data. TTL values are marked with tombstones as well as the flow proceeds.
+using TTL 30;
+
+cassandra highly concurrent and will take advantage of the multiple cores.
+Better to have more nodes in the cluster with less data than to have less nodes with more data.
+
+commitLogs needs to be in separate disk and can be a spinning disk as the disk head need not continuously move.
+
+For adding new nodes to cassandra cluster: same cluster name as the existing nodes in the cluster and the ip address to atleast one of the nodes in the existing cluster.
+
+7000 for intra node communication gossip
+9042 cassandra native binary protocol client
+9160 Thrift client
+7199 JMX monitoring
+
+Try the below things only on a vm:-
+===================================
+Change Dynamic address to static ip address:-
+'ifconfig' to get the ipaddress
+ipconfig getifaddr en0 or en1
+curl ifconfig.me (for the public ip address and not the local ip)
+
+note down the ipaddress,broadcast_address and the mask ip
+'nm-tool' which gives the gateway address and DNS address
+
+System settings  network  options ipv4 serttings  method manual   address add - change only the last three and put it like "192.168.86.100","192.168.86.101" instead of the actual "192.168.86.39". provide the netmask, gateway address and DNS address as well and then restart the machine for getting a static ip address
+
+sudo vim/etc/hostname-change the name of the machine(192.168.158.101) ->escape key + :wq (w-write and q - quit
+sudo vim/etc/hosts -  provide the address of each of the vm's for the nodes.
+192.168.158.101 - VM1
+192.168.158.102 - VM2
+192.168.158.103 - VM3
+192.168.158.104 - VM4
+=======================================
+For multinode, the below is the change that needs to be done in all nodes:
+After making sure the nodes are able to communicate with each other making changes in the static ip address, listen_address and rpc_address needs to be updated in the cassandra.yaml file.
+
+listen_address = for other nodes in the cluster to communicate with the nodes(for a multinode cluster, change it to IP address from localhost)
+rpc_address = so that client can communicate with cassandra node(for a multinode cluster, change it to IP address from localhost).
+
+=======================================
+
+Seed nodes are regular nodes and like beacon for new nodes to join the cluster and it needs to provided in the cassandra.yaml file
+Need to provide more than one IP address in the seed node properties file as back up.
+seeds : "192.168.158.101 ,192.168.158.102"
+
+Bootstapping a node is the process of adding a new node to the cluster and this node need to have the same cluster name as well as the ip address which can connect with seed nodes i.e it needs to be in the same network.
+auto_boostrap is true, then by default it will take the responsibility of the data in its range.
+if we are looking at vnodes, we need to define the num_tokens value, if we are going with old way, then need to mention about the initial_token value.
+Also, when a new node is bootstrapped i.e comes online, the node in which the data was previously residing id not deleted until you initiate a clean up command.This is done to ensure for a back up if the new node goes down as soon as it starts.
+-->"bin/nodetool -h 192.168159.101 cleanup"
+========================================
+Cassandra-Stress tool is used for stress testing a cluster.
+It can be used read and write data to a cluster for stress testing. like 100,000 rows of the data by this tools.Even though only one node is provided in the query, the data would be written and tested on all nodes.
+tools/bin/cassandra-stress -d 192.168.158.101 -n 100000
+
+monitoring in cassandra happens JMX.
+nodeool status
+nodetool info -for information for a particular node
+nodetool ring - for seeing which node each token range is assigned to.
+nodetool cfstats
+nodetool compactionstats
+
+====================================
+jdk bin subdirectory - jconsole&
+select remoteProces -> localhost:7199- select insecure button.
+Select MBeans tab
+=================================
+Opcenter needs to be installed on one of the servers and the opscenter agent needs to be installed on each of the nodes of the cluster, so that opscenter can communicate with each of the nodes.
+https://198.168.158.39:8888
+===============================
+Repair for updating a node's data to be current, due to node being down or the replication factor for a keyspace has increased or token ranges for a node has changed.
+Repair needs to be performed within gc_grace_seconds.
+
+replication_factor??
+bin/nodetool -h 192.168.158.101 repair(all the keyspaces are repaired)- performance issue.Opscenter Enterprise has inbuilt mechanism to handle auto repair without much performance issue.
+==========================
+Consistency level - accuracy of data in each node when replication factor is more than 1.default level consistency is 1 i.e only node with the replica has to respond inorder for the read request to be successful and for write only one of the node of the replica needs to acknowledge obtaining the data for the write request to be successful.
+
+. one - returns the most recent record from the closest replica based on snitch.By default, a read repair runs in the background to ensure the other replicas are consistent.
+. two
+. three
+. Quorum -
+. LocalQuorum
+. All
+
+Returns the record with the most recent timestamp after all/one/two/quorum of replicas responds.The read operation will fail if a replica does not respond.
+
+/*******/
+In a three node cluster, if the replication factor is 2 and the consistency level is 3, read and write queries will fail as the data is not there in all the three nodes but only in 2 nodes.
+if the consistency level is Quorum, the query will be successful in this scenario.
+
+if its a write and replication factor 2, then data is written to two nodes even though success is based on only successful update on one node(consistency level 1)
+But update will be unsuccessful when the replication factor of 2 and consistency level is 3, since three nodes have to acknowledge for successful write
+/*******/
+
+HintedHandoff which is enabled by default ensures that writes can happen if one of the nodes that the data is to be written is down. default is 3 hours.Here the coordinator node that receives the data holds the write(temporarily store the date) for 3 hours and writes once it is up.It does not count towards the consistency level
+The issue mainly happens if the consistency level is ANY and sometimes write may not happen, so ANY should not be used unless write is not required always.
+
+"hinted_handoff_enabled, max_hint_window_in_ms" both inside the cassandra.yaml file
+Check the Database Internals section under the Datastax tutorials.
+
+Read Repair is an option to have a repair while a read happens.It compares the replicas for the requested data and then updates any of the replicas that are outdated.
+
+====================
+Deleting a node:
+nodetool decommission is for planned removal.
+nodetool removenode is for a dead node.it also reassign the token ranges to other nodes as well.
+
+decommissioning a node only copies the data from the source node to other nodes which are responsible for it.
+Node needs to be cleaned before bringing back as new node. commitlog and saved_caches directories needs to be cleared.
+go to the folder of that particular node and /var/lib/cassandra -> "rm -r commitlog data saved_caches"
+
+"nodetool removenode status" can be used to watch the removenode happen
+"watch -n 2 bin/nodetool removenode status"
+====================
+snitch-
+endpoint_snitch: GossipingPropertyFileSnitch- advantage is just update the rack and data center information for the new node in the cassandra-rackdc.properties, rather than having to update every node in the cluster with the information about the new node.
+
+In order to specify the number of replicas per data center for keyspace in a multiple data center cluster, the replication strategy for the keyspace needs to be NetworkTopologyStrategy.
+This can be done by Alter query. Need to provide the DC as well  and how many replicas are needed in each datacenter.when there is a change in replicas, we need to run the REPAIR as well for that node keyspace.
+
+
+Known issues in cassandra:
+===========================
+if there are two updates, the one with the lexically larger value is selected.

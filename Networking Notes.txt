@@ -1,0 +1,124 @@
+
+https://github.gatech.edu
+https://education.github.com/pack
+https://achille.github.io/mininet-dump-visualizer/
+
+
+congestion control
+running out of address space
+BGP - interdomain routing protocol
+Network address translation - for converting multiple private ipv4 address to a single public ipv4 address.
+IPV4:-
+=====
+The Internet Protocol Version 4 (IPv4) is defined by IETF RFC 791.  RFC 791 was published in 1981. Initial design of IPv4 did not anticipate the growth of internet and this created many issues, which proved IPv4 need to be changed. The main limitations of IPv4 are listed below.
+
+• Scarcity of IPv4 Addresses: The IPv4 addressing system uses 32-bit address space. This 32-bit address space is further classified to usable A, B, and C classes. 32-bit address space allows for 4,294,967,296 IPv4 addresses, but the previous and current IPv4 address allocation practices limit the number of available public IPv4 addresses. Many addresses which are allocated to many companies were not used and this created scarcity of IPv4 addresses.
+
+Because scarcity of IPv4 addresses, many organizations implemented NAT (Network Address Translation) to map multiple private IPv4 addresses to a single public IPv4 address. By using NAT (Network Address Translation) we can map many internal private IPV4 addresses to a public IPv4 address, which helped in conserving IPv4 addresses. But NAT (Network Address Translation) also have many limitations. NAT (Network Address Translation) do not support network layer security standards and it do not support the mapping of all upper layer protocols. NAT can also create network problems when two organizations which use same private IPv4 address ranges communicate. More servers, workstations and devices which are connected to the internet also demand the need for more addresses and the current statistics prove that public IPv4 address space will be depleted soon.  The scarcity of IPv4 address is a major limitation of IPv4 addressing system.
+
+• Security Related Issues: As we discussed before, RFC 791 (IPv4) was published in 1981 and the current network security threats were not anticipated that time. Internet Protocol Security (IPSec) is a protocol suit which enables network security by protecting the data being sent from being viewed or modified. Internet Protocol Security (IPSec) provides security for IPv4 packets, but Internet Protocol Security (IPSec) is not built-in and optional. Many IPSec implementations are proprietary.
+
+• Address configuration related issues: Networks and also internet is expanding and many new computers and devices are using IP. The configuration of IP addresses (static or dynamic) should be simple.
+
+• Quality of service (QoS): Quality of Service (QoS) is available in IPv4 and it relies on the 8 bits of the IPv4 Type of Service (TOS) field and the identification of the payload. IPv4 Type of Service (TOS) field has limited functionality and payload identification (uses a TCP or UDP port) is not possible when the IPv4 datagram packet payload is encrypted.
+
+NAT(Network Address Translation):-
+=================================
+NAT (Network Address Translation) allows a network device (such as a Router, Firewall or a Server running Network Operating Systems like Windows 2008, Windows 2012, GNU Linux or Unix) to translate addresses between the public internet and a local private network.You may wonder "How this type of address translation can save the depleting IPv4 addresses?"
+
+The answer to the above question is the private range of IPv4 addresses. There are defined ranges of private IPv4 addresses that can be used to configure IPv4 addresses for private use (Ex. inside an enterprise network, inside a home network, inside a hotel network etc.). The IPv4 traffic originating from or destined to private IPv4 addresses is not allowed to move (or dropped) in a public internet routers (in other words, public internet routers are configured to drop any traffic coming from or going to a private IPv4 network). This permits the re-usability of private IPv4 addresses in different non-public networks. There is no IPv4 address conflict between two private IPv4 addresses separated by NAT devices. Because, the private IPv4 addresses are translated to globally unique public IPv4 addresses, when they leave their own network.
+
+NAT allows only a single globally unique IPv4 address to represent an entire network to the outside world.
+
+Three types of NAT commonly in use are
+1) Static NAT
+2) Dynamic NAT
+3) Port Address Translation (PAT/NAT Overload)
+
+packet switch networking:
+the way by which small packets of data are send one by one through a network instead of the whole packet.
+
+TCP:-
+TCP is one of the main protocols in TCP/IP networks. Whereas the IP protocol deals only with packets, TCP enables two hosts to establish a connection and exchange streams of data. TCP guarantees delivery of data and also guarantees that packets will be delivered in the same order in which they were sent.
+
+Internet protocol:- IP has the task of delivering packets from the source host to the destination host solely based on the IP addresses in the packet headers.It's the set of rules that govern how packets are transmitted over a network.
+When you send or receive data (for example, an e-mail note or a Web page), the message gets divided into little chunks called packets. Each of these packets contains both the sender's Internet address and the receiver's address. Any packet is sent first to a gateway computer that understands a small part of the Internet. The gateway computer reads the destination address and forwards the packet to an adjacent gateway that in turn reads the destination address and so forth across the Internet until one gateway recognizes the packet as belonging to a computer within its immediate neighborhood or domain. That gateway then forwards the packet directly to the computer whose address is specified.
+
+The IP protocol is the lowest level protocol of concern to us. It handles moving the data to the right computer.
+At the source computer and destination computer, the TCP protocol is used to establish connections and do error correction.
+TCP gets data from and delivers data to an application program. But there may be many application programs running on the computer. This is where the port and associated port number comes into play.
+The TCP protocol picks up and deposits the data at a port, which is a numbered, buffered storage container provided by the operating system as the hand-off point between TCP and the application program.he TCP Headers hold the port numbers used by the source and destination applications.
+
+A port can be viewed as a rendezvous point between TCP and the application. However, the port is a part of the operating system and the application program can not directly access the port. This is where the socket comes into play.
+
+A socket is a tool that carries data back and forth between a port and an application program, thus allowing the application to read from and write to the port, which, in turn, equates to sending and receiving data to and from the remote computer.
+A socket is an abstract resource of the operating system, which processes may request. We use the term abstract because it is not a piece of hardware. It consists of some data structures and instructions inside the operating system kernel.
+Summary:
+
+TCP puts the data in the right port (mail box).
+The socket transports the data between the port (mail box) and the application.
+
+
+=================================================
+Sharing - statistical multiplexing/packet switching
+Interconnection - Narrow Waist
+
+layer5 - Application Layer - HTTP,SMTP
+layer4 - Transport Layer - TCP,UDP
+layer3 - Network Layer - IP
+layer2 - Link Layer - Ethernet
+laye1 - Physical Layer - Sonar
+
+=================================================
+Best Effort Definition:-
+
+Best effort refers to a network service that attempts to deliver messages to their intended destinations but which does not provide any special features that retransmit corrupted or lost packets. Thus, there are no guarantees regarding delivery.
+
+An analogy can be made to the postal service. A sender usually cannot be certain that a letter was delivered to its intended destination. However, the sender can pay extra for a delivery confirmation receipt, which requires that the carrier get a signature from the recipient and return it to the sender.
+
+The use of best effort rather than guaranteed delivery can be more efficient for some services, and for the network as a whole, for some types of services, particularly those for which timeliness is more important than accuracy. For example, in real-time audio or video transfers, the loss of a small percentage of packets is tolerable (i.e., does not noticeably affect the sound or images), and recovering lost and corrupted packets creates excessive overhead that reduces performance.
+
+In the TCP/IP (transmission control protocol/Internet protocol) suite, IP provides a best effort delivery service for packets, while TCP provides guaranteed delivery. That is, TCP performs the equivalent of obtaining a delivery confirmation from the recipient and returning it to the sender.
+
+As is the case with TCP, UDP (user datagram protocol) also operates at the transport layer in the seven-layer OSI (open system interconnection) reference model. Both use IP's services, but UDP is basically a stripped-down version of TCP that provides applications with access to IP's best effort services. Applications go through UDP when they do not require TCP's more robust services. The low overhead (i.e., low amount of traffic and small additions to packet headers) that results from this connectionless and minimal error checking makes UDP faster and more efficient than TCP for many lightweight or time-sensitive purposes, such as for servers that answer small queries for huge numbers of clients.
+
+Best effort services can exist at various layers in the OSI model. For example, whereas IP is a network layer protocol, UDP is a transport layer protocol and Ethernet and HDLC (high level data link control) are data link layer protocols.
+
+===============================================
+Router:
+A router is an electronic device and/or software that connects at least two networks and forwards packets among them according to the information in the packet headers and routing tables.
+Routers are more intelligent than Hubs or switches. routers are designed to join together multiple local area networks (LANs) with a wide area network (WAN). Routers serve as intermediate destinations for network traffic. They receive incoming network packets, look inside each packet to identify the source and target network addresses, then forward these packets where needed to ensure the data reaches its final destination. Neither switches nor hubs can do these things.
+switches are higher-performance alternatives to hubs. Both pass data between devices connected to them. Hubs do so by broadcasting the data to all other connected devices, while switches first determine which device is the intended recipient of the data and then sends it to that one device directly via a so-called "virtual circuit."
+switches (and hubs) are not capable of joining multiple networks or sharing an Internet connection. A network with only switches and hubs must instead designate one computer as the gateway to the Internet, and that device must possess two network adapters for sharing, one for the home facing connection and one for the Internet facing connection.With a router, all home computers connect to the router as peers, and the router handles all such Internet gateway functions.
+
+===========================================
+MAC address is the address/unique id of the adaptor where the host system is connected to. IP address or DNS is only for host computer and not for the adaptor/network interface/ethernet adaptor which connects with the host computer.Network adapters are produced with a physical address embedded in the hardware called the Media Access Control (MAC) address.Manufacturers take care to ensure these 6-byte (48-bit) addresses are unique, as IP relies on these unique identifiers for message delivery.
+These mac addresses are 48bit long and an ARP cache is maintained to keep a mapping between mac address and ip address.
+Host will broadcast with ip address for ARP request and the ARP response will have the unicast MAC address which will be updated in the local host ARP table. ARP cache will also be updated in the destination adapter for mapping between destination adaptor and local destination machine.
+The host will be having the ipaddress and the mac address mapping inside the local arp table, after the ARP request and response has been successful. Once the local arp table is good, the host machine then will create an ip packet with data and the destination IPAddress and wrap it inside an ethernet frame which has a source mac address and destination mac address.
+
+Routers use the IP layer (layer 3) and switches use the data-link layer (layer 2). Layer 1 is the physical 1s and 0s that go over a wire, Layer 2 is the data-link layer, which is protocols like Ethernet and Point-To-Point Protocol (PPP), which carries information between adjacent nodes about MAC address from and to and allows for error detection and retransmission. Layer 3 is the IP layer, which carries information about where in the whole network the packet is from and to, not just the current hop.
+==========================================
+Interconnecting Lan with Hubs:-
+-------------------------------
+the hub just broadcast the packet to all the other hubs in the network, which could involve the one inside the local n/w as well as the global ones
+Problems with Hubs:-
+flooding, collisions of frames, latency, failures due to misconfiguration in any of the hubs.
+
+Interconnecting Lan with Switch:-
+When a switch is used, it creates a domain and prevents the packet from sending it across the switch to other networks if the destination is in the same domain.
+It requires the creation of switch table inside the switch, which maps the destination mac address to output ports inside the switch.
+Learning switch: first it floods the frame with request and then updates the switch table based on the request and response.
+switching loops and Broadcast storms happens in learning switch.
+switching loops: This happens in the case of the machines connected among themselves, creating redundant connections through multiple paths.
+                  In this case, when the packet gets broadcasted to different switches(with out any data in switch table), and cycles continuously in loops across the network infinitely.This situation where in even the normal packets which does not get properly delivered due to whole bandwidth being used by switching loops can lead to Broadcast storms
+
+A broadcast storm is the situation in which messages broadcast on a network cause multiple hosts to respond simultaneously by broadcasting their own messages, which, in turn, prompts further messages to be broadcast, and so on.
+A broadcast is the transmission of a single message to all hosts on the network simultaneously. A host is a computer that is connected to the network.This snowballing effect (i.e., exponential growth) can have a serious negative effect on network performance and lead to a network meltdown. A network meltdown is the situation in which a network functions poorly or ceases to function as a result of excessive traffic.Broadcast storms are usually caused by misconfigured network software that results in the creation of erroneous packets. They can also be instigated by denial of service (DoS) attacks, commonly those in which a large amount of ping traffic is sent to a broadcast address.Broadcast storms can usually be prevented by the careful configuration of networks, including balancing the number of nodes on each network segment and the judicious use of firewalls.
+============================================
+Buffer size for a TCP Sender:-
+The window size represents the maximum number of unacknowledged bytes that can be in transit. When the sender hits that limit he must stop sending.It is adjusted dynamically in the protocol.The sender should buffer data sent until it is acknowledged, at which point it can be discarded. If it isn't acknowledged it may be retransmitted etc.Any ACK contains a sequence number. All buffered send data below that sequence number can be discarded.Receiving Buffer is used when any in-order packet arrives. It stays there until read by the application. Out-of-order segments aren't necessarily buffered at all.
+https://blog.stackpath.com/glossary/cwnd-and-rwnd/
+http://www.onlamp.com/2005/11/17/tcp_tuning.html
+
+TCP uses additive increase and multiplicative decrease congestion control 

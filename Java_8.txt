@@ -1,0 +1,14 @@
+concurrent programming
+parallel programming
+One way of asynchronous or parallel processing is through callback methods
+
+Asynchronous parallel execution:
+ExecuterService- place where we can assign our task(a callable object) and then wait for it be handled by the service.
+ExecuterService is like a business execution unit, containing threadpool. whenever a thread inside the threadpool is idle, it can take any callable object for task execution that was submitted to executerService.
+The reference to this callable object is provided as future object. Whenever the task execution is complete, it will notify the executerservice that in turn updates the future object.
+
+isDone() method on the future object. Anyone with a reference to future object, can get the status of the task by making isDone().
+get() method on the future object will provide you with the details on the result of the execution task.We cannot initiate a parallel thread with future.get() to get the result, the call will wait until the task completes.
+
+newFixedThreadPool-only certain number of threads will be created.if new task is submitted, when all the threads are active, then the task has to be wait for one of the threads to finish. Should be used when there is large number of long running tasks.
+newCachedThreadPool-Threads will be created on the fly, when no thread is idle, but will also reuse existing threads when they are available for taking the new incoming task.if a particular thread is idle for more than 60 seconds, it will automatically be terminated and removed from the cache.Should be used when there is large number of short lived tasks.

@@ -1,0 +1,427 @@
+hive --version
+hadoop version
+pig --version
+sqoop version
+oozie version
+
+Objective:-
+To have the daily web log files collected from 350+ servers daily queryable thru some SQL like language
+To replace daily aggregation data generated thru MySQL with Hive
+Build Custom reports thru queries in Hive
+
+Architecture Options:-
+I benchmarked the following options
+Hive+HDFS
+Hive+HBase - queries were too slow so dumped this option
+
+Design:-
+Daily log Files were transported to HDFS
+MR jobs parsed these log files and output files in HDFS
+Create Hive tables with partitions and locations pointing to HDFS locations
+Create Hive query scripts (call it HQL if u like as diff from SQL) that in turn ran MR jobs in the background and generated aggregation data
+Put all these steps into an Oozie workflow - scheduled with Daily Oozie Coordinator
+Summary
+
+HBase is like a Map. If u know the key, u can instantly get the value. But if u want to know how many integer keys in Hbase are between 1000000 and 2000000 that is not suitable for Hbase alone.
+
+If you have data to be aggregated, rolled up, analyzed across rows then consider Hive
+
+Pig:-
+Pig is a simple-to-understand data flow language used in the analysis of large data sets. Pig scripts are automatically converted into MapReduce jobs by the Pig interpreter, so you can analyze the data in a Hadoop cluster even if you aren't familiar with MapReduce.
+
+
+The original file is divided into smaller chunks and pushed into each node inside the HDFS. Each node containing the file is handled by the DataNode Daemon and the location of each file in the nodes is provided in the metadata(information stored in the NameNode) of the NameNode.
+Hadoop replicates the data three times in different nodes to ensure the data is not lost.
+==========================================
+hadoop fs -ls
+hadoop fs -put purchases.txt
+hadoop fs -tail purchases.txt
+almost same as the unix commands
+
+create a directory in hadoop with new folder name and put the purchases.txt in that folder.
+hadoop fs -mkdir newFolder
+hadoop fs -put purchases.txt newFolder
+hadoop fs -ls newFolder  // shows the content of the file in the newFolder
+hadoop fs -get {hadoop folder path} {localdisk folderpath\purchases.txt}
+
+=====================================
+
+Hadoop commands:
+===============
+hadoop fs :-
+=============
+hadoop file system commands like CAT,CHMOD,CHOWN,ls,CHGROUP,GET,PUT etc
+
+hadoop jar :-
+============
+Runs a jar file. Users can bundle their Map Reduce code in a jar file and execute it using this command.
+Usage:-
+======
+hadoop jar <jar> [mainClass] args..
+hadoop jar /usr/share/hue/apps/oozie/examples/lib/hadoop-examples.jar wordcount shakespeare wordcount-output
+hadoop jar {jar file with path} {Main Driver class from the jar} {input directory} {output directory}
+hadoop fs -cat output-workdcount/part-r-00000(this is the output file which tells only one reducer. if 6 reducer then 6 files)
+hs {script} {reducer script} {input_file} {output directory}
+
+hadoop does not allow you to override the data in the cluster.create timestamp for output filenames.
+
+examples of mapreduce: Recommendation systems, fraud Detection,Item Classification etc
+Types of hadoop mode:-
+=======================
+Hadoop run modes and job Type:-
+==============================
+  local JobRunner:-
+        Only single JVM, but mocks up all the daemons as if they are running on separate real jvms.it shares all the heap and all variables inside of a single jvm.
+  Psuedo Distributed jobRunner:-
+        Here all the daemons runs as single jvm's inside one single machine.Each Task tracker creates a new jvm when a task is scheduled by JT.It is started and shut down (after task completion).Each Task tracker handles multiple task and hence creates multiple jvm for handling that task which is quite an expensive process.
+  Fully distributed Jobrunner mode
+      Running on 1000s of servers for mapping and reducing
+
+Network time protocol need to be synced in all the nodes
+
+single distributed mode
+psuedo-distributed mode - full cluster running on one machine.
+https://docs.google.com/document/d/1v0zGBZ6EHap-Smsr3x3sGGpDW-54m82kDpPKC2M6uiY/pub
+https://docs.google.com/document/d/1MZ_rNxJhR4HCU1qJ2-w7xlk2MTHVqa9lnl_uj-zRkzk/pub
+Fully distributed mode
+https://developer.yahoo.com/hadoop/tutorial/module5.html#partitioning
+
+Hadoop Streaming which allows us to write the code in any language for mappers and reducers.
+Hadoop job tracker webInterface--> localhost:50030/jobtracker.jsp
+
+The data pushed into the HDFS file system is split into chunks and replicated default 3 times and distributes among slaves.This replication is done for durability and concurrent access.
+Write once and Read many- NO appends or edits.
+Blocksize in hadoop is 64MB but better to have 128MB.
+for replication factor of 3, the same data will be replicated across three data nodes.
+
+NameNode ->
+=========
+Namenode is the masternode the clients must initiate read/write operation.
+Has all metadata info like filename, permissions,directory and which nodes contain which blocks.
+Job Tracker- individual daemons which runs on each master nodes
+contains two files inside the NameNode -> fsimage and Edit Logs
+if we loose name node, then we lose HDFS.
+NameNode contains fsimage and editlogs.
+
+fsimage and edit logs are periodically merged.
+fsimage - Its the snapshot of the filesystem when namenode is started and is created by the secondary name node and sits inside both namenode and the 2namenode(this new one is copied to namenode after every 1 hour)
+Edit logs - Its the sequence of changes made to the filesystem after namenode is started or is the HDFS deltas since snapshot.
+2NN uses this editlogs to do compaction and ensure the new fsimage is created based on the editlogs.It makes hadoop runs fast as the editlogs will be small.
+RTO or recovery time objective will grow longer if 2NN is down for a longtime.
+RPO - recovery point objective. i.e amount of data loss.
+No hotfailover mechanism by secondary Name Node.
+http://blog.madhukaraphatak.com/secondary-namenode---what-it-really-do/
+Atleast two mirrored RAIDed disks, a remote NFS mountpoint and heavy monitoring of all disks
+Daily or weekly backups of the full fsimage and the edit logs.
+
+DataNode ->
+Slave Node where the individual block storage happens
+client does direct read/write to/from slave nodes.
+commodity server
+Datanode also provides the block reports, providing info on the blocks it has at regular intervals.if one of the datanodes has lesser block than the replication, then the namenode will pull the block across the network from another data node which has it, to ensure the replication factor is maintained.
+
+Task Tracker - Individual daemons which runs on each slave nodes.
+
+HeartBeats:
+Every 3 seconds from data node into name node that it is alive and ready to take task(i.e read/write)
+if after 10 heartbeats or 30 seconds, it does not report to the name node, the datanode is taken out of rotation and that block is re-replicated.
+
+Integrity is also ensured through checksums. i.e comparison of the write checksum when a write is made(by writing to a file in the same data node).This file is compared with read checksum during the reading by the client. if the checksum are not equal, then namenode is notified and the data is read from another data node and the bad datanode is re-replicated with data from another node.The data node also verifies the checksum integrity internally every three weeks and re-replication happens if its not proper.
+
+***************** HDFS FILE WALKTHROUGH ********************
+Go through the HDFS file walkthrough
+hadoop fs -put {inputfile} {outputfolder}
+
+provide the block size and replication factor and then client will divide the file into the chunks.
+replication factor and the block size is provided by the client and mostly it is stored in the client locally. It can also be provided from the name node
+total size/block size = number of splits
+
+  # initially the client talks to the name node of the hadoop with a PUT request using hadoop fs command for a write operation with the blocksize and the replication factor and the first blocksize.
+  # the namenode responds with "WRITE PIPELINE" provides with a set of the data nodes where it needs to write to based on the replication factor.
+  "DATE NEVER MOVES THROUGH THE NAMENODE"
+  # client connects with the firstdata node and then puts the file into the first datanode's local disk and from there it gets copied internally to other nodes like client -> A -> c ->F for a replication factor of 3.
+  # A Reverse acknowledgement happens like F -> C -> A -> client
+  # As soon as the client gets notified about a successful write in all nodes, it updates the namenode about the success and provides info about the locations of the first block and ask for the second block.
+  # The namenode updates its memory and disk representation with this data with one block long and then next set of iteration happens.
+  # after all the blocks are done, the file is immutable.
+  # the same mapping is there in namenode's memory and disk.
+  # all data nodes are equal.
+  # Incase some of the nodes as part of the replication is down, the namenode and datanode will ensure the replication based on the success from the updated data node.Incase if all are down, the client will reach out to the namenode for a new write pipeline.
+
+Checksum:-
+checksum also does its job here to ensure integrity
+======================================================================================
+HA(High availability and federation basics):-
+-------------------------------------------
+HA- to prevent namenode being the single point of failure.
+standby name node came into picture.
+https://www.safaribooksonline.com/library/view/learning-apache-hadoop/9781771372374/video183091.html
+https://www.safaribooksonline.com/library/view/learning-apache-hadoop/9781771372374/video183092.html
+kerberos provides strong authentication mechanism to HDFS, which is done through ticket granting service.
+
+======================================================================================
+ports:-
+NameNode 50070
+Job Tracker 50030
+Task Tracker 50060
+
+Design Patterns in Hadoop:-
+1). Filtering patterns -
+      Sampling , Top-N No Change in the original data- output is created
+      Simple filter
+      Bloom Filter
+      Sampling Filter
+      Random Filter
+      Top-N Filter
+2). Summarization patterns -
+      Counting records, Max/Min, Statistics,Index
+Structural patterns - Combining Data sets
+
+
+MAPPER: Data Extractor
+REDUCER: Data Summarization
+
+Master and Slave Node configurations:
+=====================================
+Master Nodes would be like 2-3 node clusters.
+These are single point of failures
+They require redundancy with carrier class hardware.
+
+Slave Nodes:
+4-4000 node cluster
+commodity class cluster
+Hadoop handles redudancy internally.
+Slave Nodes are added based on storage or processing needs.
+
+Hadoop Uses Linear horizontal scale.
+Cluster Growth:
+if the storage is a factor for growth for slave nodes ->Raw data-intermediate Date(which is 20 to 30% of Raw)/R.f = usable disk space
+if the processing is a factor for growth for slave nodes -> Need to increase the cpu or ram
+
+Hadoop Ecosystem:-
+=================
+anything outside of hdfs or mapreduce
+ZooKeeper is used for building the distributed systems.
+Yarn - yet another resource negotiator
+Hive -> sql like interface - mapreduce abstractions
+pig -> provide functional programming interface-mapreduce abstractions
+HBase -> Fast scalable NOSQL engine
+Cloudera Managers -> Web-Interface for administrators
+Impala - real time sql queries -> makes sql a first class citizen
+
+Hadoop architecture is batch processing architecture based on parallelism, i.e data should be pushed in multiple nodes and processable.
+
+Types of analysis;-
+Recommendation engine
+Index building
+Text mining/pattern recognition
+Risk assessment/threat analysis
+predictive analysis
+fault or error analysis
+
+five long running daemons in the hadoop cluster
+Storage:
+NameNode -> Master Daemons
+SecondaryNameNode -> Slave Daemons -> performs "checkpointing" only for namenodes
+DataNode -> Slave Daemons
+
+processing:-
+job Tracker -> Master Daemons-
+coordinates the processing of namenode
+coordinates the scheduling of job processing.
+Task Tracker->Slave Daemons-> processing task are handled by a long running daemons, which handles individual piece of assignment.
+Slave nodes provide health output and data status everytime to jobnode
+
+Hive:-
+run the querying by converting it into MR.
+Hive converts its tables into HDFS
+Requires pre-creation and population of tables.
+works better for ad-hoc queries.Works better with structured data.
+
+Pig:
+Requires no metastore and works on raw HDFS files
+load and define the data type at the runtime.
+get the data from HDFS file store, for which we need to run the query and use that file to create and run the query.
+
+find . -type d| grep hue
+
+In new version of hadooop, jobs can be monitored at:
+localhost:8088
+
+In old version,hadoop:-
+NameNode - (http://localhost:50070)/ (for my name node)
+JobTracker - (http://localhost:50030)/
+
+To track the job tracker or the ResourceManager and applicationMaster:-
+=====================================================================
+If you are using YARN framework, there is no jobtracker in it. Its functionality is split and replaced by ResourceManager and ApplicationMaster.
+Here is expected jps printout while running YARN
+/usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh
+
+Hadoop 2 uses YARN framework i.e. MapReduce 2.0 (MRv2).start-mapred.sh is not required. To start Hadoop, use start-all.sh or start-dfs.sh and start-yarn.sh.
+YARN’s original purpose was to split up the two major responsibilities of the JobTracker/TaskTracker into separate entities:
+    # global ResourceManager
+    # per-application ApplicationMaster
+    # per-node slave NodeManager
+    # per-application Container running on a NodeManager
+
+Check the job.xml from the ResourceManager's UI by navigating to http://RESOURCEMANAGER_HOST:8088/cluster -> select your application's Tracking UI -> Select your Job ID -> On the left tab you'll be able to see Configuration. Or simply if you already know you'r job's id then visit this link: http://JOBHISTORY_SERVER:19888/jobhistory/conf/YOUR_JOB_ID
+============
+MAPREDUCE:-
+============
+The output from the mappers are the Intermediate Records.All the forms of data are key/value pair
+Once the mapping completes, shuffle and sort happens.
+Hadoop takes care of the Shuffle and Sort phase. You do not have to sort the keys in your reducer code, you get them in already sorted order.
+The shuffle is the movement of the key/value pair from the intermediate records to the Reducers and the sort is the sorting of these data sets in the reducer.
+Thus reducers gets a key and then a list of all the values of the key like for example all the values of the different amount from each store.
+
+When we submit a job to a mapreduce, we submit the job to JobTrackers. That splits the work into mappers and reducers.these mappers and reducers run on other nodes and each of these task is handled by a tasktracker and run on each of these nodes.
+
+Each node will have multiple input split which needs to completed as task and it is the task tracker of the same node which handles it and incase if any of the tasktracker is already involved in handling one of the splits of the same node, then a task tracker from another node will handle the tracking of the job, which happens rarely.
+
+1 is the least number of mappers required for a job in mapreduce and zero is the least number of reducers required for Mapreduce,as aggregation/summation may not be required always.
+
+Number of mappers required for processing the job is handled by the hadoop itself.
+Number of reducers required for processing the job is handled by the users.
+
+Job Tracker(Master Daemon):-
+--------------
+client submits the job to job tracker.Job tracker is constantly pinged by the task trackers.
+It does the orchestration and delegation.
+
+Task Tracker:
+-------------
+slave daemon.
+Task tracker always ping saying that it is ready to accept the data for map and reduce task.
+task tracker in each node always tracks the progress of its map or reduce tasks.
+Task tracker always reports the progress of its map and reduce tasks to the job tracker on a regular interval with which we can see in the terminal, the completed % of the whole map or reduce tasks.
+Mapper inside the task tracker gets the data inside the same node (or another node in extreme case), and completes the task and outputs an intermediate output.The task tracker provides the update of the progress to the jobtracker, which initiates another data node to start the reducer task. This reducer task gets the intermediate output from each of the mapper data node across the network for the next processing.
+once all the processing in reducers is complete, the reducers act as the client and output the data into the HDFS.
+
+MapReduce config files(location: /etc/hadoop/conf):-
+mapred-sit.xml-
+  core mapreduce daemon config
+hadoop-env.sh -
+  Environment variables used by the hadoop like jvm heap size, java_home etc
+
+"Hadoop jar" tells the client to submit the job to job tracker with location. This is configured in mapred-site.xml
+jarfile contains the jobconfig and all map and reduce code.
+
+Speculative execution: - when a particular task runs slower than the other ones, job tracker assigns that task to another task tracker in another node as well and which ever output first, the other one would be removed.
+Once all the job has been completed successfully, a _SUCCESS flag file is created in the output directory and Job tracker ask all the task tracker to remove the intermediate data from its locations.
+log files still persist
+command:
+---------
+hadoop jar {jar file with path} {Main Driver class from the jar} {input directory} {output directory}
+Once the job is submitted into the cluster, we cannot kill the job by the cntrl+c.
+To kill the job, we need to run the hadoop dash kill command.
+
+Driver code: It controls all the configuration.our job level parameters.Types of input or output.
+mapper code
+Reducer code- simple aggregates the output.
+========
+
+javac - classpath 'hadoop classpath' *.java
+jar cvf wordcount,jar *.class
+========
+The client has been configured with location of the job tracker in the mapred-site.xml file
+
+MapReduce configuration files:-
+================================
+MapReduce is one type of application that can run on the Hadoop 2.x framework. MapReduce configuration options are stored in the /opt/mapr/hadoop/hadoop-2.x.x/etc/hadoop/mapred-site.xml file and are editable by the root user. This file contains configuration information that overrides the default values for MapReduce parameters. Overrides of the default values for core configuration properties are stored in the Default mapred Parameters file.
+
+To override a default value for a property, specify the new value within the <configuration> tags, using the following format:
+<property>
+ <name> </name>
+ <value> </value>
+ <description> </description>
+</property>
+
+
+RackAwareness:-
+================
+Embed the racknumber in our hostnames or provide a script in the name node with all the datanode rack details like ip and server name, rack name etc(not good).
+like S123-r1 in
+core-site.xml ->topology.script.file.name parameter
+This will ensure namenode becomes rack aware.
+
+CUSTOM COMPARATOR, COMBINER AND PARTITIONERS.
+
+Datatypes in hadoop:-
+-------------------
+Text
+IntWritable
+LongWritable
+FloatWritable
+ etc
+ all are WritableComparables.(dint read on this)
+
+ Debugging:
+ ----------
+ Tough in fully distributed mode.
+ ensure the datatypes match with the actual data and take care of the malformed data through try and catch.
+ use IDE with local job runner mode.
+ use MRUnit framework for unit testing of the mappers and reducers.
+
+Logs:
+no print statement
+Job Level - Output provides the data inside HDFS-Output-dir/_logs(This also contains the xml configuration submitted by "Hadoop jar" command)
+Task Tracker - inside /var/log/hadoop-version/userlogs/{}/syslog
+
+apache log4j logger used by hadoop
+private static final logger LOGGER = LOGGER.getLogger(MyMapper.class.getName());
+log4j log level config location :- /etc/hadoop/conf/log4j.properties
+
+HIVE-PIG-IMPALA:
+------------------
+Hive and pig are alternative interfaces to mapreduce
+Hive and Impala are good for analytics
+
+Pig for processing or ETL(Etract,Load and Transform).Used for complex data flow. Requires a pig interpreter.Uses the piglatin scripts and converts them into mapreduce jobs and run it on HDFS to provide the output.
+Both pig and Hive can be installed as a client or as a webservice(Hive2)
+
+
+IMPALA:
+data maps well into row/column format.
+and needed real time interactive querying capability.
+Need to ensure lack of fault tolerance is acceptable.
+has IMPALAD daemon which runs on the slavenodes.no need of job tracker and task tracker and impala queries works fine as these daemons
+has statestored daemon. run 1 on each cluster.
+
+HIVE:
+HIVE used when the data maps to row/column format.or data analyst are SQL pros.
+Hive can be installed as a client or as a webservice(Hive2 or Hue)
+HiveServer2 is used for connection with application using jdbc connections.
+Requires metastore for either client or server which is the mapping between Hive table and HDFS data.
+metastore does not store any data in itself.just a relationship mapper with a hdfs data.
+eg: Create External table page_view(ViewTime int, userId BigInt, page_url String, referre_url String, IP string)
+    COMMENT 'this is a page view table' ROW FORMAT DELIMITED FIELD TERMINATED BY '\t' LOCATION '{some path in HDFS}';
+#data in hdfs
+213124^t1231^thttp://asfda.com/^thttp://sfadc.com/^t182.232.32.1
+Now in Hive i can run a hive query like:-
+Select * from page_view where page_url like "%asfda.com";
+
+Internal vs External - Internal table will affect the HDFS data as well along with the schema in metastore, but not the External table.
+
+
+
+Cloudera Manager:-
+================
+Event server
+Host monitor
+Alert publisher
+service monitor
+
+
+zookeeper
+HDFS
+HBase
+solr
+yarn
+sqoop 2
+key value store indexer
+spark
+hive
+oozie
+impala
+Hue
