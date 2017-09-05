@@ -1,39 +1,57 @@
-Cassandra is not ACID complaint- Atomicity,consistency,Isolation,Durability.
-Atomicity;- All or nothing - if one part of the transaction fails
-Consistency- Ensuring that it abides by all the rules, contraints,cascades,errors etc
-Isolation-the visibility of the changes made in the database to other users.
-Durability- a committed transaction always stay committed.
 
-MongoDB vs Cassandra:-
-=======================
-Expressive object model - mongoDb
-Secondary Indexes - MongoDB
-No Downtime on node failure - Cassandra
-High write Thoughput - Cassandra
-query language support - cassandra
-Transactional Data - Cassandra
 
 sudo chown -R $USER:$GROUP /var/lib/cassandra - for providing the provision to the directory
 ps  aux | grep cass
 
+Cluster cluster = Cluster.addContactPoint("localhost").build();
+Session session = cluster.connect();
+String vehicle_Id = "asd23123";
+String track_date = "2014-08-10";
+String queryString = "select time,latitude,longitude from vehicle_tracker.location where vehicle_id=''" + vehicle_id+"' And date ='" + trackdate+"'";
+
+7000 for intra node communication gossip
+9042 cassandra native binary protocol client
+9160 Thrift client
+7199 JMX monitoring
+
 bin/dse cassandra -f -> to start the cassandra in forground mode
 netstat -ap tcp | grep -i "listen"
+Try the below things only on a vm:-
+===================================
+Change Dynamic address to static ip address:-
+'ifconfig' to get the ipaddress
+ipconfig getifaddr en0 or en1
+curl ifconfig.me (for the public ip address and not the local ip)
 
+note down the ipaddress,broadcast_address and the mask ip
+'nm-tool' which gives the gateway address and DNS address
 
-good linear scaling
-alwags on uptime
-data can be stored close to clients
+System settings  network  options ipv4 serttings  method manual   address add - change only the last three and put it like "192.168.86.100","192.168.86.101" instead of the actual "192.168.86.39". provide the netmask, gateway address and DNS address as well and then restart the machine for getting a static ip address
+
+sudo vim/etc/hostname-change the name of the machine(192.168.158.101) ->escape key + :wq (w-write and q - quit
+sudo vim/etc/hosts -  provide the address of each of the vm's for the nodes.
+192.168.158.101 - VM1
+192.168.158.102 - VM2
+192.168.158.103 - VM3
+192.168.158.104 - VM4
+=======================================
+For multinode, the below is the change that needs to be done in all nodes:
+After making sure the nodes are able to communicate with each other making changes in the static ip address, listen_address and rpc_address needs to be updated in the cassandra.yaml file.
+
+listen_address = for other nodes in the cluster to communicate with the nodes(for a multinode cluster, change it to IP address from localhost)
+rpc_address = so that client can communicate with cassandra node(for a multinode cluster, change it to IP address from localhost).
+
+=======================================
+Known issues in cassandra:
+===========================
+if there are two updates, the one with the lexically larger value is selected.
+
 
 CREATE KEYSPACE prod_details WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true;
 COPY activity (home_id, datetime, event, code_used) FROM '/home/vm1/Desktop/Files/Chapter 7/events.csv' WITH header = true AND delimiter = '|';
 COPY home (home_id, address, city, state, zip, contact_name, phone, alt_phone, phone_password, email, main_code, guest_code) FROM '/home/vm1/Desktop/Files/Chapter 7/homes.csv' WITH header = true AND delimiter = '|';
 bin/sstable2json /var/lib/cassandra/data/home_security/activity/home_security-activity-jb-1-Data.db
 
-Cluster cluster = Cluster.addContactPoint("localhost").build();
-Session session = cluster.connect();
-String vehicle_Id = "asd23123";
-String track_date = "2017-08-10";
-String queryString = "select time,latitude,longitude from vehicle_tracker.location where vehicle_id=''" + vehicle_id+"' And date ='" + trackdate+"'";
 
 ResultSet rs = session.execute();
 start_native_transport : true by default
@@ -76,37 +94,27 @@ commitLogs needs to be in separate disk and can be a spinning disk as the disk h
 
 For adding new nodes to cassandra cluster: same cluster name as the existing nodes in the cluster and the ip address to atleast one of the nodes in the existing cluster.
 
-7000 for intra node communication gossip
-9042 cassandra native binary protocol client
-9160 Thrift client
-7199 JMX monitoring
 
-Try the below things only on a vm:-
-===================================
-Change Dynamic address to static ip address:-
-'ifconfig' to get the ipaddress
-ipconfig getifaddr en0 or en1
-curl ifconfig.me (for the public ip address and not the local ip)
+Cassandra is not ACID complaint- Atomicity,consistency,Isolation,Durability.
+Atomicity;- All or nothing - if one part of the transaction fails
+Consistency- Ensuring that it abides by all the rules, contraints,cascades,errors etc
+Isolation-the visibility of the changes made in the database to other users.
+Durability- a committed transaction always stay committed.
 
-note down the ipaddress,broadcast_address and the mask ip
-'nm-tool' which gives the gateway address and DNS address
+MongoDB vs Cassandra:-
+=======================
+Expressive object model - mongoDb
+Secondary Indexes - MongoDB
+No Downtime on node failure - Cassandra
+High write Thoughput - Cassandra
+query language support - cassandra
+Transactional Data - Cassandra
 
-System settings  network  options ipv4 serttings  method manual   address add - change only the last three and put it like "192.168.86.100","192.168.86.101" instead of the actual "192.168.86.39". provide the netmask, gateway address and DNS address as well and then restart the machine for getting a static ip address
+good linear scaling
+alwags on uptime
+data can be stored close to clients
 
-sudo vim/etc/hostname-change the name of the machine(192.168.158.101) ->escape key + :wq (w-write and q - quit
-sudo vim/etc/hosts -  provide the address of each of the vm's for the nodes.
-192.168.158.101 - VM1
-192.168.158.102 - VM2
-192.168.158.103 - VM3
-192.168.158.104 - VM4
-=======================================
-For multinode, the below is the change that needs to be done in all nodes:
-After making sure the nodes are able to communicate with each other making changes in the static ip address, listen_address and rpc_address needs to be updated in the cassandra.yaml file.
 
-listen_address = for other nodes in the cluster to communicate with the nodes(for a multinode cluster, change it to IP address from localhost)
-rpc_address = so that client can communicate with cassandra node(for a multinode cluster, change it to IP address from localhost).
-
-=======================================
 
 Seed nodes are regular nodes and like beacon for new nodes to join the cluster and it needs to provided in the cassandra.yaml file
 Need to provide more than one IP address in the seed node properties file as back up.
@@ -189,6 +197,3 @@ In order to specify the number of replicas per data center for keyspace in a mul
 This can be done by Alter query. Need to provide the DC as well  and how many replicas are needed in each datacenter.when there is a change in replicas, we need to run the REPAIR as well for that node keyspace.
 
 
-Known issues in cassandra:
-===========================
-if there are two updates, the one with the lexically larger value is selected.
