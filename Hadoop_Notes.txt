@@ -403,6 +403,35 @@ Select * from page_view where page_url like "%asfda.com";
 
 Internal vs External - Internal table will affect the HDFS data as well along with the schema in metastore, but not the External table.
 
+HDFS is a fault tolerant distributed storage on large clusters of commodity hardware.
+hdfs-default.xml
+JobTracker and TaskTracker are 2 essential process involved in MapReduce execution in MRv1 (or Hadoop version 1). Both processes are now deprecated in MRv2 (or Hadoop version 2) and replaced by Resource Manager, Application Master and Node Manager Daemons.
+http://hadoopinrealworld.com/jobtracker-and-tasktracker/
+
+Objective:-
+To have the daily web log files collected from 350+ servers daily queryable thru some SQL like language
+To replace daily aggregation data generated thru MySQL with Hive
+Build Custom reports thru queries in Hive
+
+Architecture Options:-
+I benchmarked the following options
+Hive+HDFS
+Hive+HBase - queries were too slow so dumped this option
+
+Design:-
+Daily log Files were transported to HDFS
+MR jobs parsed these log files and output files in HDFS
+Create Hive tables with partitions and locations pointing to HDFS locations
+Create Hive query scripts (call it HQL if u like as diff from SQL) that in turn ran MR jobs in the background and generated aggregation data
+Put all these steps into an Oozie workflow - scheduled with Daily Oozie Coordinator
+Summary
+
+HBase is like a Map. If u know the key, u can instantly get the value. But if u want to know how many integer keys in Hbase are between 1000000 and 2000000 that is not suitable for Hbase alone.
+
+If you have data to be aggregated, rolled up, analyzed across rows then consider Hive
+
+Hbase:
+CRUD (create, read, update, and delete) data. You can also perform scans of HBase table rows, which are always stored in HBase tables in ascending sort order. When you scan through HBase tables, rows are always returned in order by row key. Each row consists of a unique, sorted row key (think primary key in RDBMS terms) and an arbitrary number of columns, each column residing in a column family and having one or more versioned values. 
 
 
 Cloudera Manager:-
