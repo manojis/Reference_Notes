@@ -1,3 +1,51 @@
+Lambda expressions can only be used with functional interfaces.
+Functional Interfaces: you have an interface with one abstract method in it. Functional Interfaces can contain more than one method.
+
+//functional Interface example
+public interface AllocationService{
+  String updateSettings();  
+}
+if a lambda expression is invoked for AllocationService interface, then AllocationService is the targetType of that Lambda 
+Expression.
+
+{formal parameters list}->{Expression of statements}
+
+
+public class AllocationServiceImpl{
+  Interface AllocationService{
+      String updateSettings(String message);
+  }
+  public static void main(){
+        AllocationService allocate = new AllocationService(){
+          @Override
+          public String updateSettings(String message){
+              System.out.println(message);
+              return "Hello"+ message;
+          }          
+        };
+
+        AllocationService allocates = (String message)->"hello"+message;
+        System.out.println(allocates.updateSetting("good morning"));
+  }  
+}
+
+if there are multiple parameters as input:
+
+public static void main(){
+
+  AllocationService allocates = (String name, String Rollno, String sex) -> {
+      if(sex == "male"){
+        return name + " "+ "male";
+      } else if(sex == "female"){
+        return name + " " + "female"
+      }
+      
+  };
+
+  System.out.println(allocates.updateSettings("Manoj","456dt","Male"));
+}
+
+
 concurrent programming
 parallel programming
 One way of asynchronous or parallel processing is through callback methods
