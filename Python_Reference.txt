@@ -1,0 +1,23 @@
+()) is a tuple: An immutable collection of values, usually (but not necessarily) of different types.
+[] is a list: A mutable collection of values, usually (but not necessarily) of the same type.
+{} is a dict: Use a dictionary for key value pairs.
+
+
+python ValidateOutput.py -s student_out.txt -r sample_out.txt
+git commit -a -m "Saving work" git pull --rebase"
+
+Here is an overview:-
+run_spanning_tree (main program starts everything, loads the topology specified on the command line) ->
+Topology <-> Switch (generates the topology and creates all switches, initializes all switches) ->
+run_spanning_tree (the STP simulation is started) ->
+Topology <-> Switch/StpSwitch (each switch sends their initial message to their neighbors which ultimately results in all other messages that are sent/received)
+All of these messages are added to a FIFO queue maintained in the Topology class.  They are added in the send_message method and removed (sent to other switches) via the run_spanning_tree method.
+note: since Switch is a subclass of StpSwitch it uses the wrapper function of send_message to communicate with the overall Topology class.  This is done to maintain the spirit of the project otherwise each switch can view the whole topology which isn't how STP works in practice.
+All of this logic is the bulk of the assignment and coded in the process_message method of the Switch class.  Once there are no more messages to process (because each switch's state has stabilized/not-changed (i.e., the topology converged)) then it stops.
+run_spanning_tree -> Topology <-> Switch (writes the active links needed to properly implement the STP to the output file specified on the command line)
+
+Test Results:
+https://piazza.com/class/j6jkxy4k9zq6gc?cid=270
+https://piazza.com/class/j6jkxy4k9zq6gc?cid=322
+Basic python questions:-
+https://piazza.com/class/j6jkxy4k9zq6gc?cid=280

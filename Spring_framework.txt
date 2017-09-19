@@ -75,5 +75,12 @@ public List<Invoice> listUsersInvoices(
 }
 
 ModelAndView(usually, the return type for the methods inside the controller) is a wrapper class that spring uses to hold the data and the second one is a reference to the view that we want spring to use for now.view can be used to provide the path for a jsp page
+@ResponseBody
 
-@ResponseBody:
+Issues associated with security:-
+Cross-Site scripting
+session fixation
+cross site request forgery
+identification, authentication and authorization
+
+SecurityContextHolder -> thread local object and the authentication object is stored in the securitycontextholder after the validation.
