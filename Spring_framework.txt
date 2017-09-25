@@ -84,3 +84,13 @@ cross site request forgery
 identification, authentication and authorization
 
 SecurityContextHolder -> thread local object and the authentication object is stored in the securitycontextholder after the validation.
+
+
+Singletons are about creation. This design pattern ensures that only one instance of a class is created.Thread safety is about execution.
+Autowiring has five different modes:
+
+no: no autowire
+byName : Autowiring that can be done by property name
+byType : property type as autowired
+constructor: It is similar to byType and it is property is in constructor
+autodetect :  Spring is allowed to select autowiring from byType or constructor 

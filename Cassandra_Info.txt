@@ -7,7 +7,7 @@ Cluster cluster = Cluster.addContactPoint("localhost").build();
 Session session = cluster.connect();
 String vehicle_Id = "asd23123";
 String track_date = "2014-08-10";
-String queryString = "select time,latitude,longitude from vehicle_tracker.location where vehicle_id=''" + vehicle_id+"' And date ='" + trackdate+"'";
+String queryString = "select time, latitude, longitude from vehicle_tracker.location where vehicle_id=''" + vehicle_id+"' And date ='" + trackdate+"'";
 
 7000 for intra node communication gossip
 9042 cassandra native binary protocol client
@@ -74,6 +74,7 @@ delete - delete a certain row or value in a table
 TRUNCATE -  Delete all the rows in a table
 DROP- to delete a table
 
+Cassandra is a schema optional, column oriented data model.Cassandra is not ACID complaint. It supports transaction to some extent particularly for real time updates and retrieval.but since it doesnot contain any locking mechanism during concurrent updates, it does not support acid compliance.
 A tombstone is created whenever data is marked for deletion.
 The data is not immediately deleted so that other nodes can also replicate the same and also for the ones which is down as well so that it doesnt update other nodes with old data once it is back up.
 The minimum amount of time that must pass before a delete can occur - gc_grace_seconds property for the table.- default -10 days
@@ -156,7 +157,7 @@ Consistency level - accuracy of data in each node when replication factor is mor
 . one - returns the most recent record from the closest replica based on snitch.By default, a read repair runs in the background to ensure the other replicas are consistent.
 . two
 . three
-. Quorum -
+. Quorum - local quorum and each quorum
 . LocalQuorum
 . All
 
@@ -196,4 +197,12 @@ endpoint_snitch: GossipingPropertyFileSnitch- advantage is just update the rack 
 In order to specify the number of replicas per data center for keyspace in a multiple data center cluster, the replication strategy for the keyspace needs to be NetworkTopologyStrategy.
 This can be done by Alter query. Need to provide the DC as well  and how many replicas are needed in each datacenter.when there is a change in replicas, we need to run the REPAIR as well for that node keyspace.
 
+sstableloader is used to load data into cassandra from external sources.The data can be put as flat files but in sstableformat.
 
+Adding/removing/updating/deleting column family in cassandra:-
+=============================================================
+. Remove the commitlogs using nodetool drain
+. shutdown cassandra
+. Delete the sstable files for any CF's removed and rename the files for any CF's that were renamed
+. update storage-conf.xml
+. Start cassandra.

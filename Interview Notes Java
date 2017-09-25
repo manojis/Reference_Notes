@@ -1,0 +1,46 @@
+destory() is part of servlet life cycle methods, it is used to kill the servlet instance. Servlet Engine is used to call destory(). In case, if you call destory method from service(), it just execute the code written in the destory(), but it wont kill the servlet instance. destroy() will be called before killing the servlet instance by servlet engine.
+
+We cannot override static methods. Static methods belongs to class, not belongs to object. Inheritance will not be applicable for class members.
+
+List of Java Object methods:-
+============================
+clone() - Creates and returns a copy of this object.
+	equals() - Indicates whether some other object is "equal to" this one.
+	finalize() - Called by the garbage collector on an object when garbage collection
+			determines that there are no more references to the object.
+	getClass() - Returns the runtime class of an object.
+	hashCode() - Returns a hash code value for the object.
+	notify() - Wakes up a single thread that is waiting on this object's monitor.
+	notifyAll() - Wakes up all threads that are waiting on this object's monitor.
+	toString() - Returns a string representation of the object.
+	wait() - Causes current thread to wait until another thread invokes the notify() method
+			or the notifyAll() method for this object.
+
+
+Enumerator are only good for traversing but using iterator we can manipulate the collections as well.
+
+We cannot override static methods. Static methods are belogs to class, not belongs to object. Inheritance will not be applicable for class members
+By specifying final keyword to the method you can avoid overriding
+
+Transient variables cannot be serialized. During serialization process, transient variable states will not be serialized. State of the value will be always defaulted after deserialization.
+
+A  fail-fast system is nothing but immediately report any failure that is likely to lead to failure. When a problem occurs, a fail-fast system fails immediately. In Java, we can find this behavior with iterators.Incase, you have called iterator on a collection object, and another thread tries to modify the collection object, then concurrent modification exception will be thrown. This is called fail-fast.
+
+Constructor cannot be synchronized. Because constructor is used for instantiating object, when we are in constructor object is under creation. So, until object is not instantiated it does not need any synchronization.
+
+Two types of webservices:
+Soap and Restful
+
+Three types of webservice components:
+Soap,WDSL,UDDI
+
+Soap: platform independent and language independent, uses xml format.
+Has its own security called ws security. really slow to read and parse.uses services interfaces to expose the business logic.defines stadards which needs to be strictly followed.
+
+Restful - any language and platform, fast and consumes less bandwidth and resource, permits different data formats.uses uri to expose business logic.Restful uses underlying transport layer as security.
+
+java webservices api:
+JAXWS AND JAXRS
+
+JAX-WS: soap, RPC style and document style.
+JAX-RS: Restful, two types- Jersey and RestEasy.
