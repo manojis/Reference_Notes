@@ -44,3 +44,22 @@ JAXWS AND JAXRS
 
 JAX-WS: soap, RPC style and document style.
 JAX-RS: Restful, two types- Jersey and RestEasy.
+
+Hadoop interview questions:-
+==========================
+1. Understand vision - how the data will be used
+2. Get data growth rate
+3. Understand how future-proofed your solution should be - 2 years, 3 years etc
+4. Assumed disk space on commodity hardware
+5. Assumed replication factor - default of 3
+6. Calculate the disk space for the projected years
+7. Add 30% extra to the space calculation to allow for hadoop machiner usage for MR and other aspects
+8. Factor in NN server requirement and HA of the same
+9. Factor in JT server requirements and HA of the same
+10. Factor in Zookeeper requirement and HA of the same
+11. Decide format of date storage - text file, sequence file/AVRO/RCFile/Compression & codec - although this might impact space requirement - minimize it
+12. Factor in HBase master server requirement and HA of the same if HBase is to run
+13. Factor in racks/switches
+14. Factor in number of environments - dev/test/QA/prod parallel/production..and cluster size
+15. Plan out users/groups/authentication/authorization and any data encryption needed.
+16. Plan the load tasks, and data integrity checks

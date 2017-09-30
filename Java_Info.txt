@@ -12,7 +12,7 @@ ClassNotFoundException and NoClassDefFoundError:-
 Both occur when a particular class is not found at runtime. However, they occur at different scenarios.
 ClassNotFoundException is an exception that occurs when you try to load a class at run time using Class.forName() or loadClass() methods and mentioned classes are not found in the classpath.
 NoClassDefFoundError is an error that occurs when a particular class is present at compile time, but was missing at run time.
-ClassNotFoundException is a runtime exception that is thrown when an application tries to load a class at runtime using the Class.forName() or loadClass() or findSystemClass() methods ,and the class with specified name are not found in the classpath. Example:- onnect to MySQL or Oracle databases and you have not updated the classpath with required JAR files. Most of the time, this exception occurs when you try to run an application without updating the classpath with required JAR files like "oracle.jdbc.driver.OracleDriver” is not found in the classpath.
+ClassNotFoundException is a runtime exception that is thrown when an application tries to load a class at runtime using the Class.forName() or loadClass() or findSystemClass() methods ,and the class with specified name are not found in the classpath. Example:- connect to MySQL or Oracle databases and you have not updated the classpath with required JAR files. Most of the time, this exception occurs when you try to run an application without updating the classpath with required JAR files like "oracle.jdbc.driver.OracleDriver” is not found in the classpath.
 NoClassDefFoundError is an error that is thrown when the Java Runtime System tries to load the definition of a class, and that class definition is no longer available. The required class definition was present at compile time, but it was missing at runtime.Example: can be created by removing one of the .class file which is accessed by another class.
 
 
@@ -138,6 +138,8 @@ Objects are created on the heap, and only references (which in turn are primitiv
 
 Threads:-
 =========
+start() method of java.lang.Thread
+
 When a CPU switches from executing one thread to executing another, the CPU needs to save the local data, program pointer etc. of the current thread, and load the local data, program pointer etc. of the next thread to execute. This switch is called a "context switch".
 Concurrency - java.util.concurrent
 Object - java.lang.Object
@@ -182,6 +184,13 @@ A thread that calls wait() on any object becomes inactive until another thread c
 The waiting thread would call doWait(), and the notifying thread would call doNotify(). When a thread calls notify() on an object, one of the threads waiting on that object are awakened and allowed to execute. There is also a notifyAll() method that will wake all threads waiting on a given object.both the waiting and notifying thread calls wait() and notify() from within a synchronized block. A thread cannot call wait(), notify() or notifyAll() without holding the lock on the object the method is called on. If it does, an IllegalMonitorStateException is thrown.
 Once a thread calls wait() it releases the lock it holds on the monitor object. This allows other threads to call wait() or notify() too, since these methods must be called from inside a synchronized block.
 Once a thread is awakened it cannot exit the wait() call until the thread calling notify() has left its synchronized block. In other words: The awakened thread must re-obtain the lock on the monitor object before it can exit the wait() call, because the wait call is nested inside a synchronized block. If multiple threads are awakened using notifyAll() only one awakened thread at a time can exit the wait() method, since each thread must obtain the lock on the monitor object in turn before exiting wait().
+
+1).Every object created in Java has one associated monitor (mutually exclusive lock). Only one thread can own a monitor at any given time.
+2).For achieving synchronization in Java this monitor is used. When any thread enters a synchronized method/block it acquires the lock on the specified object. When any thread acquires a lock it is said to have entered the monitor. All other threads which need to execute the same shared piece of code (locked monitor) will be suspended until the thread which initially acquired the lock releases it.
+3).wait method tells the current thread (thread which is executing code inside a synchronized method or block) to give up monitor and go to waiting state.
+4).notify method wakes up a single thread that is waiting on this object's monitor.
+5).notifyAll method wakes up all the threads that called wait() on the same object.
+    Any method or a block of code, if not qualified with the keyword synchronized can be executed by more than one thread at any given time as object's monitor(lock) is not in the picture. Where as when a method is synchronized (or there is a synchronized block) only a single thread who has acquired the object's monitor can access the code.Since wait() method is about thread releasing the object's lock and go to sleep where as notify/notifyAll methods are about notifying the thread(s) waiting for the object's lock. So, wait(), notify() and notifyAll() methods (as mentioned above) should be invoked on an object only when the current thread has already acquired the lock on an object. In fact not doing so will result in java.lang.IllegalMonitorStateException.
 
 sleep():
 	It is a static method on Thread class. It makes the current thread into the "Not Runnable" state for specified amount of time. During this time, the thread keeps the lock (monitors) it has acquired.
@@ -249,19 +258,27 @@ One more key difference between a Thread and an Executor is that a Thread can on
 In the case of Thread, the task is executed by the Thread which accepts Runnable instance, but in the case of Execution the command (a Runnable implementation) may be executed in a new thread, a pooled thread or in the calling thread itself, depending upon the implementation of Executor interface.
 In the case of a thread, it's developer's responsibility to create and start the thread, but in the case of Executor, the framework will create and start threads for you. Though you can control the whole process by giving your implementation of Executor interface. Though, with the improvements in ForkJoinPool in Java 7 and 8, you might want to use that instead of Executor.
 
+Sleep vs yield in Java:-
+=======================
+Sleep and yield are two methods which are used to get CPU back from Thread to Thread Scheduler in java but they are completely different than each other. The major difference between Sleep vs yield is that sleep is more reliable than yield and it's advised to use sleep(1) instead of yield to relinquish CPU in multi-threaded Java application to give an opportunity to other threads to execute.
+Both sleep() and yield() are static methods and operate on current thread
+Thread.sleep() method throws InterruptedExcepiton if another thread interrupt the sleeping thread, this is not the case with yiedl method.
+Thread.sleep() method doesn't cause currently executing thread to give up any monitors while sleeping.
+sleep() method is to pause the current thread, but it will not release any lock held by current thread. If you also want thread to release CPU as well as any lock held, consider using wait() method instead.
+
 the Executor framework is that you can run concurrent tasks that may return a result after processing the task. The Java Concurrency API achieves this with the following two interfaces Callable and Future.
 Callable : This interface has the call() method. In this method, you have to implement the logic of a task. The Callable interface is a parameterized interface, meaning you have to indicate the type of data the call() method will return.
 Future : This interface has some methods to obtain the result generated by a Callable object and to manage its state.
 
-Executor.submit() and execute()
+Executor.submit() and execute():-
+==============================
 A main difference between the submit() and execute() method is that ExecuterService.submit()can return result of computation because it has a return type of Future, but execute() method cannot return anything because it's return type is void.
-The submit() can accept both Runnable and Callable task but execute() can only accept the Runnable task.
+The submit() can accept both Runnable and Callable task but execute() can only accept the Runnable task.It Returns a future task on calling submit().
 The submit() method is declared in ExecutorService interface while execute() method is declared in the Executor interface.
-
-
 
 creating a thread in java leads to lot of memory overhead and hence better to reuse threads from threadpool.
 Executor vs Thread: Executor service offers all the implementations of the Runnable interface, on top of that call() which is overridden can provide any object as return type alongwith exception where ever needed.
+
 Executor interface has to create a threadpool using ExecutorService.newFixedThreadPool(size in integers).Use this executor to submit the task which is callable
 
       ExecutorService service = Executors.newFixedThreadPool(10);
@@ -275,10 +292,25 @@ A Callable can return a value but a Runnable cannot.
 A Callable can throw checked exception but a Runnable cannot.
 A Callable can be used with ExecutorService#invokeXXX(Collection<? extends Callable<T>> tasks) methods but a Runnable cannot be.
 
+Callable vs Runnable:-
+=====================
+Both Callable and Runnable interface are used to encapsulate task supposed to be executed by another thread
+Callable can return result
+Callable can throw checked exception.
+
+ExecutorService -> can use both Callable and Runnable(Submit() can accept both)
+Executor -> Only Runnable(i.e execute() can only accept Runnable).
+
+Callable can return the result of parallel processing of a task. It returns a Future object, which represents the lifecycle of a task and provides methods to check if the task has been completed or canceled, retrieve the result or cancel the task. Since return type of Runnable's run() method is void, it cannot return anything.
+
 RejectedExecutionHandler would be useful when you set max capacity for workQueue and number of tasks, which have been submitted to Executor are more than workQueue capacity.
 
 Locks:-
 with locks, you can release and acquire the locks in any order. - with synchronized, you can release the locks only in the order it was acquired.
+Lock lock = new Lock();
+lock.lock();
+lock.unlock();
+The lock() method locks the Lock instance so that all threads calling lock() are blocked until unlock() is executed.
 
 Deadlock vs Nested Monitor Lockout:-
 ===================================
@@ -286,6 +318,22 @@ In deadlock, two threads are waiting for each other to release locks.In nested m
 
 Slipped condition:
 Slipped conditions means, that from the time a thread has checked a certain condition until it acts upon it, the condition has been changed by another thread so that it is erroneous for the first thread to act.
+
+CyclicBarrier and CountDownLatch:-
+==================================
+Both CyclicBarrier and CountDownLatch are used to implement a scenario where one Thread waits for one or more Thread to complete there job before starts processing but there is one Difference between CountDownLatch and CyclicBarrier in Java which separates them apart and that is, you can not reuse same CountDownLatch instance once count reaches to zero and latch is open, on the other hand CyclicBarrier can be reused by resetting Barrier, Once barrier is broken
+
+Lock Re-Entrance:
+================
+Synchronized blocks in Java are reentrant. This means, that if a Java thread enters a synchronized block of code, and thereby take the lock on the monitor object the block is synchronized on, the thread can enter other Java code blocks synchronized on the same monitor object.
+If a thread already holds the lock on a monitor object, it has access to all blocks synchronized on the same monitor object. This is called reentrance. The thread can reenter any block of code for which it already holds the lock.
+ava synchronized keyword is re-entrant in nature it means if a java synchronized method calls another synchronized method which requires same lock then current thread which is holding lock can enter into that method without acquiring lock.
+-->When guarding a critical section with a Lock, and the critical section may throw exceptions, it is important to call the unlock() method from inside a finally-clause. Doing so makes sure that the Lock is unlocked so other threads can lock it.
+
+Object level locking vs class level locking:-
+===========================================
+Object level locking is mechanism when you want to synchronize a non-static method or non-static code block such that only one thread will be able to execute the code block on given instance of the class. This should always be done to make instance level data thread safe.
+Class level locking prevents multiple threads to enter in synchronized block in any of all available instances on runtime. This means if in runtime there are 100 instances of  DemoClass, then only one thread will be able to execute demoMethod() in any one of instance at a time, and all other instances will be locked for other threads.
 
 
 Threads:
