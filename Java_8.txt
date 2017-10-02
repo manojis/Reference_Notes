@@ -3,9 +3,9 @@ Functional Interfaces: you have an interface with one abstract method in it. Fun
 
 //functional Interface example
 public interface AllocationService{
-  String updateSettings();  
+  String updateSettings();
 }
-if a lambda expression is invoked for AllocationService interface, then AllocationService is the targetType of that Lambda 
+if a lambda expression is invoked for AllocationService interface, then AllocationService is the targetType of that Lambda
 Expression.
 
 {formal parameters list}->{Expression of statements}
@@ -21,12 +21,12 @@ public class AllocationServiceImpl{
           public String updateSettings(String message){
               System.out.println(message);
               return "Hello"+ message;
-          }          
+          }
         };
 
         AllocationService allocates = (String message)->"hello"+message;
         System.out.println(allocates.updateSetting("good morning"));
-  }  
+  }
 }
 
 if there are multiple parameters as input:
@@ -39,7 +39,7 @@ public static void main(){
       } else if(sex == "female"){
         return name + " " + "female"
       }
-      
+
   };
 
   System.out.println(allocates.updateSettings("Manoj","456dt","Male"));
@@ -60,3 +60,7 @@ get() method on the future object will provide you with the details on the resul
 
 newFixedThreadPool-only certain number of threads will be created.if new task is submitted, when all the threads are active, then the task has to be wait for one of the threads to finish. Should be used when there is large number of long running tasks.
 newCachedThreadPool-Threads will be created on the fly, when no thread is idle, but will also reuse existing threads when they are available for taking the new incoming task.if a particular thread is idle for more than 60 seconds, it will automatically be terminated and removed from the cache.Should be used when there is large number of short lived tasks.
+
+parallel programming java 8:
+===========================
+employees.parallel().foreach(e ->e.giveraise(1.5));
