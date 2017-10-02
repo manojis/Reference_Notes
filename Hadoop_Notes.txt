@@ -12,17 +12,18 @@ almost same as the unix commands
 
 create a directory in hadoop with new folder name and put the purchases.txt in that folder.
 hadoop fs -mkdir newFolder
-hadoop fs -put purchases.txt newFolder
+hadoop fs -put purchases.txt newFolder - for inserting the data into hadoop folder
 hadoop fs -ls newFolder  // shows the content of the file in the newFolder
-hadoop fs -get {hadoop folder path} {localdisk folderpath\purchases.txt}
+hadoop fs -get {hadoop folder path} {localdisk folderpath\purchases.txt} - for retrieving the data from hadoop cluster
 
 =====================================
+for creating a jar file - jar -cvf {jar name.jar} *.class
 
 Hadoop commands:
 ===============
 hadoop fs :-
 =============
-hadoop file system commands like CAT,CHMOD,CHOWN,ls,CHGROUP,GET,PUT etc
+hadoop file system commands like CAT, CHMOD, CHOWN, ls, CHGROUP, GET,PUT etc
 
 hadoop jar :-
 ============
@@ -300,9 +301,8 @@ Task tracker always reports the progress of its map and reduce tasks to the job 
 Mapper inside the task tracker gets the data inside the same node (or another node in extreme case), and completes the task and outputs an intermediate output.The task tracker provides the update of the progress to the jobtracker, which initiates another data node to start the reducer task. This reducer task gets the intermediate output from each of the mapper data node across the network for the next processing.
 once all the processing in reducers is complete, the reducers act as the client and output the data into the HDFS.
 
-MapReduce config files(location: /etc/hadoop/conf):-
-mapred-sit.xml-
-  core mapreduce daemon config
+MapReduce config files(location: /etc/hadoop/conf):-  mapred-sit.xml-
+core mapreduce daemon config
 hadoop-env.sh -
   Environment variables used by the hadoop like jvm heap size, java_home etc
 
@@ -347,7 +347,18 @@ like S123-r1 in
 core-site.xml ->topology.script.file.name parameter
 This will ensure namenode becomes rack aware.
 
-CUSTOM COMPARATOR, COMBINER AND PARTITIONERS.
+CUSTOM COMPARATOR, COMBINER AND PARTITIONERS:
+=============================================
+For sort functions, we need to implement custome comparator function needs to be implemented.
+WriteableComparable must implement "equals","compareTo" and "hashCode" methods.
+calling job.setSortComparatorClass(MyComparator.class) in driver for comparator.class
+
+All jobs needs to be mapped or partitioned based on keys.
+partitioner methods can be hashpartitioner based on hashcode or TotalorderPartitioner or Custom partitioner.
+job.setpartitioner in driver by passing the name of the custom partitioner class we created ---> job.setpartitionerClass(mycustomParitioner.class)
+--> partitioners,combiners and comparators and custom writablecomparables have to be written in java
+
+
 
 Datatypes in hadoop:-
 -------------------
@@ -433,7 +444,7 @@ HBase is like a Map. If u know the key, u can instantly get the value. But if u 
 If you have data to be aggregated, rolled up, analyzed across rows then consider Hive
 
 Hbase:
-CRUD (create, read, update, and delete) data. You can also perform scans of HBase table rows, which are always stored in HBase tables in ascending sort order. When you scan through HBase tables, rows are always returned in order by row key. Each row consists of a unique, sorted row key (think primary key in RDBMS terms) and an arbitrary number of columns, each column residing in a column family and having one or more versioned values. 
+CRUD (create, read, update, and delete) data. You can also perform scans of HBase table rows, which are always stored in HBase tables in ascending sort order. When you scan through HBase tables, rows are always returned in order by row key. Each row consists of a unique, sorted row key (think primary key in RDBMS terms) and an arbitrary number of columns, each column residing in a column family and having one or more versioned values.
 
 
 Cloudera Manager:-
@@ -444,15 +455,17 @@ Alert publisher
 service monitor
 
 
-zookeeper
+zookeeper-
 HDFS
-HBase
+HBase - Database - Fast scalable NoSQL engine
 solr
 yarn
-sqoop 2
+sqoop 2 - pull/push data to RDBMS
 key value store indexer
-spark
-hive
-oozie
-impala
-Hue
+spark -
+hive - MR - provide sql like interface
+pig - MR - provide functional programming interface
+oozie - chain together MR jobs, data import/export scripts
+impala - makes a sql first class citizen
+Hue - web interface for end users
+Flume - push real time data to HDFS
