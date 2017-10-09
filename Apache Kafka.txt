@@ -1,0 +1,154 @@
+messaging system- publish and subscribe messaging system.
+KAfKA is a write ahead logging system that writes all published messages to log files before making it available for consumer applications.
+highly available, highly scalable distributed, publish and subscribe messaging system.
+large number of consumers
+Ad-hoc consumers, Batch consumers,Automatic recovery from broken failures.
+Messaging - communicating b/w apps, website tracking metrics collections - instead of writing to logs, Audit
+Disadvantages:-
+No data transformations,No encryption, authorization and authentication.
+
+The most important elements of Kafka:
+Topic – It is the bunch of similar kind of messages
+Producer – using this one can issue communications to the topic
+Consumer – it endures to a variety of topics and takes data from brokers.
+Brokers – this is the place where the issued messages are stored
+
+Architecture:-
+==========================================
+
+Kafka is a consumer pull system.
+Messages are organized into topics.Producers push messages and consumers pull messages.
+Kafka runs in a cluster. Nodes are called brokers.
+Topics are divided into partitions and each partitions will be in different machines.
+Every message in Kafka Topics is a collection of bytes, which is array.
+Producers send messages to the kafka queues, which can store all types of messages in kafka topics.
+producers append to the end of the write-ahead log file and consumers fetch the messages from these log files belonging to a particular topic partition.
+
+one topic  - multiple brokers which are the nodes here  - and each brokers host more than one partitions of a topic.Better to have a uniform number of partitions in each broker.Consumer subscribe to these topics.
+Each of the brokers is stateless, which can be maintained stateful through zookeepers.
+Each partitions has replicas in other brokers to maintain high availability. There will be one leader , where all the reads and writes go and the replicas are copied from the leader.
+Randomizer decides to which partition to write the data.
+Consumer gets data from Topics and partitions. There can more than one consumer in a single consumer group.
+Each consumer in a consumer group will be getting part of the data from different partitions of the same broker.
+
+if there are more than one consumer in a consumer group and each consumer group is subscribing to a topic, which are in multiple nodes with different partitions in each, then each of consumers gets part of the data from the same topic.
+
+commands for topics:-
+===================
+create, list, describe, alter
+
+All the commands including create should be mentioned with zookeeper.
+bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {firsttopicname} --partitions 2 --replication-factor 2
+
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+{firsttopicname}
+
+starting producer:-
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic first
+
+starting consumer:-
+consumer needs to get the list of the brokers from the zookeeper.This is done to ensure that consumer is able to keep the state of what it had read previously like it is in which offset etc.
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic firsttopicname
+
+for troubleshooting, if we want to see all the messages from the begining of the topic:-
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic firsttopicname --from-begining
+
+Two types of producer:-
+old producer:-
+============
+Sync producer- which comes with acknowledgement
+Async Producer - no acknowledgement notification
+
+New producer:-
+============
+smarter has future inbuilt which can get the acknowledgement with get()
+Multi-threaded
+Bounded memory usage
+Both sync and async modes can handle errors
+
+Messages are byte arrays in kafka, hence you need to serialize the string messages.
+use encoder in producer and decoder in consumer, if we want to have any other type for serialization other than byte array collection.
+
+java program producer:-
+=======================
+
+configure() the producer using properties file
+start the producer by creating an instance of the producer with the configuration
+//string key and string value
+producer = new Producer<String, String>(config);
+
+send() - the message by providing the message using keyedmessage()
+      KeyedMessage<String, String> message = new KeyedMessage<String, String>(topic, null, s);
+      producer.send(message);
+Also, producer can send messages to multiple Topics.
+then call close()
+
+send():-
+There are two forms of send method. There is the send method with a callback and one without a callback. Both forms of the send method return a Future object. They both asynchronously sends a record to a topic. The callback gets invoked when the broker has acknowledged the send. The send method is asynchronous and returns right away as soon as the record gets added to the send buffer. The send method allows sending many records at once without blocking for a response from Kafka broker. The result of send method is a RecordMetadata which contains a record’s partition, offset, and timestamp. Callbacks for records sent to the same partition are executed in the order sent.
+send() Exceptions:-
+The Kafka Producer send method can emit the following exceptions:
+
+InterruptException - If the thread is interrupted while blocked (API).
+SerializationException - If key or value are not valid objects given configured serializers (API).
+TimeoutException - If the time taken for fetching metadata or allocating memory exceeds max.block.ms, or getting acks from Broker exceed timeout.ms, etc. (API)
+KafkaException - If Kafka error occurs not in public API. (API)
+
+flush():-
+the Producer flush() method sends all buffered records now (even if linger.ms > 0). It blocks until all requests sent are complete. The flush method is useful when consuming from some input system and pushing data into Kafka as flush() ensures all previously sent messages get sent. This method is useful for marking a completion point after a flush.
+
+close():-
+The close() closes producer and frees resources such as connections, threads, and buffers associated with the producer. There are two forms of the close method both block until all previously sent requests complete or a duration passed in as a parameter is exceeded. The close method with no parameters is equivalent to close(Long.MAX_VALUE, TimeUnit.MILLISECONDS). If a producer is unable to complete all requests before the timeout expires, all unsent requests fail, and this method fails.
+You should call Producer.flush() before calling Producer.close(). This is a blocking call and will return not before all record got sent.If you don't call close(), depending on the implementation/language you might end up with resource/memory leaks.
+
+java program Consumer:-
+=====================
+ 1). High level consumer - Tracks which offset were read in zookeeper or in kafka.It balances the partitions between thread and processes.Need to check this - if we multhithread the consumer for high level, then we cannot manually create the offset as this will set in parallel offset for all threads. so better to create multiple consumer objects to handle the multi-thread scenario.
+ 2). Simple consumer - u need to provide the partition, topic and offset to the api.more control on how data is read and tracked.Low level API
+ 3). New Consumer -
+
+
+ configure() - configure to zookeeper as it contains the details regarding the brokers.
+ConsumerConnector consumer; - consumer connector object
+consumer.createJavaConsumerConnector(config);
+
+/* We tell Kafka how many threads will read each topic. We have one topic and one thread */
+Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
+topicCountMap.put(topic,new Integer(1));
+
+/* Kafka will give us a list of streams of messages for each topic.In this case, its just one topic with a list of a single stream */
+consumer.createMessageStreams(topicCountMap, decoder, decoder);
+
+private KafkaStream<String, String> stream;
+stream.iterator().next().message();
+
+consumer.commitoffsets() - for committing the offset with the zookeeper for the one we already read.
+
+configuration parameters:-
+=========================
+
+auto.create.topic.enable = true
+delete.topic.enable=true
+fetch.message.max.bytes
+
+bin/kafka-run-class.sh kafka.tools.consumeroffsetchecker  - for offsettools
+
+
+if I don't set any group id in the Consumer Properties, The kafka consumer will not have any consumer group. Instead you will get this error : The configured groupId is invalid.
+single default value in kafka consumer - you can see the consumer.properties file of kafka for reference. The default consumer group id is: group.id=test-consumer-group
+If all consumers use the same group id, messages in a topic are distributed among those consumers. In other words, each consumer will get a non-overlapping subset of the messages. Having more consumers in the same group increases the degree of parallelism and the overall throughput of consumption. On the other hand, if each consumer is in its own group, each consumer will get a full copy of all messages.
+
+consumers need a groupId(Mandatory) and consumerId(Non-Mandatory).Consumers groups is a Kafka abstraction that enables supporting both point-to-point and publish/subscribe messaging. A consumer can join a consumer group (let us say group_1) by setting its group.id to group_1. Consumer groups is also a way of supporting parallel consumption of the data i.e. different consumers of the same consumer group consume data in parallel from different partitions.
+In addition to group.id, each consumer also identifies itself to the Kafka broker using consumer.id. This is used by Kafka to identify the currently ACTIVE consumers of a particular consumer group.
+
+f you provide more threads than there are partitions on the topic, some threads will never see a message
+if you have more partitions than you have threads, some threads will receive data from multiple partitions
+if you have multiple partitions per thread there is NO guarantee about the order you receive messages, other than that within the partition the offsets will be sequential. For example, you may receive 5 messages from partition 10 and 6 from partition 11, then 5 more from partition 10 followed by 5 more from partition 10 even if partition 11 has data available.
+adding more processes/threads will cause Kafka to re-balance, possibly changing the assignment of a Partition to a Thread.
+
+
+Kafka includes five core apis:-
+The Producer API allows applications to send streams of data to topics in the Kafka cluster.
+The Consumer API allows applications to read streams of data from topics in the Kafka cluster.
+The Streams API allows transforming streams of data from input topics to output topics.
+The Connect API allows implementing connectors that continually pull from some source system or application into Kafka or push from Kafka into some sink system or application.
+The AdminClient API allows managing and inspecting topics, brokers, and other Kafka objects.

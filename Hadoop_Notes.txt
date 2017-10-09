@@ -332,6 +332,26 @@ MapReduce configuration files:-
 ================================
 MapReduce is one type of application that can run on the Hadoop 2.x framework. MapReduce configuration options are stored in the /opt/mapr/hadoop/hadoop-2.x.x/etc/hadoop/mapred-site.xml file and are editable by the root user. This file contains configuration information that overrides the default values for MapReduce parameters. Overrides of the default values for core configuration properties are stored in the Default mapred Parameters file.
 
+mapreduce methods:
+inside Driver:
+create an instance of job
+setDriverClass()
+setMapperClass()
+setReducerClass()
+
+output needs to be in key value :-
+setOutputKeyclass(Text.class)
+setOutputValueClass(IntWritable.class)
+
+fileinputformat.addfilepath()
+fileoutputformat.addfiletpath()
+
+mapper.class:-
+extends mapper class
+map method
+
+
+
 To override a default value for a property, specify the new value within the <configuration> tags, using the following format:
 <property>
  <name> </name>
@@ -349,7 +369,7 @@ This will ensure namenode becomes rack aware.
 
 CUSTOM COMPARATOR, COMBINER AND PARTITIONERS:
 =============================================
-For sort functions, we need to implement custome comparator function needs to be implemented.
+For sort functions, we need to implement custom comparator function needs to be implemented.
 WriteableComparable must implement "equals","compareTo" and "hashCode" methods.
 calling job.setSortComparatorClass(MyComparator.class) in driver for comparator.class
 
@@ -390,9 +410,8 @@ HIVE-PIG-IMPALA:
 Hive and pig are alternative interfaces to mapreduce
 Hive and Impala are good for analytics
 
-Pig for processing or ETL(Etract,Load and Transform).Used for complex data flow. Requires a pig interpreter.Uses the piglatin scripts and converts them into mapreduce jobs and run it on HDFS to provide the output.
-Both pig and Hive can be installed as a client or as a webservice(Hive2)
-
+Pig for processing or ETL(Extract,Load and Transform).Used for complex data flow. Requires a pig interpreter.Uses the piglatin scripts and converts them into mapreduce jobs and run it on HDFS to provide the output.
+Both pig and Hive can be installed as a client or as a Webservice(Hive2)
 
 IMPALA:
 data maps well into row/column format.
@@ -401,7 +420,8 @@ Need to ensure lack of fault tolerance is acceptable.
 has IMPALAD daemon which runs on the slavenodes.no need of job tracker and task tracker and impala queries works fine as these daemons
 has statestored daemon. run 1 on each cluster.
 
-HIVE:
+HIVE:-
+======
 HIVE used when the data maps to row/column format.or data analyst are SQL pros.
 Hive can be installed as a client or as a webservice(Hive2 or Hue)
 HiveServer2 is used for connection with application using jdbc connections.
@@ -454,6 +474,58 @@ Host monitor
 Alert publisher
 service monitor
 
+Container in yarn:-
+================
+It represents a resource (memory) on a single node at a given cluster.
+A container is:-
+supervised by the node manager
+scheduled by the resource manager
+One MR task runs in such container(s).
+
+MapReduce v1 vs MapReduce v2:-
+===========================
+YARN dynamically allocates resources for applications as they execute. The MapReduce version 1 (MRv1) has been rewritten to run as an application on top of YARN; this new version is called MapReduce version 2.0 (MRv2).The main advancement in YARN architecture is the separation of resource management and job management, which were both handled by the same process (the JobTracker) in Hadoop 1.x. Cluster resources and job scheduling are managed by the ResourceManager, and resource negotiation and job monitoring are managed by an ApplicationMaster for each application running on the cluster. In MapReduce, each node advertises a relatively fixed number of map slots and reduce slots. This can lead to resource under-utilization, for example, when there is a heavy reduce load and map slots are available, because the map slots cannot accept reduce tasks (and vice versa).
+YARN generalizes resource management for use by new engines and frameworks, allowing resources to be allocated and reallocated for different concurrent applications sharing a cluster. Existing MapReduce applications can run on YARN without any changes. At the same time, because MapReduce is now merely another application on YARN, MapReduce is free to evolve independently of the resource management infrastructure.
+
+hadoop jar {path to hadoop jar} {main class} input-dir {directory name} output-dir
+Driver controls all the configuration and this is where we setup our job level parameters.
+
+Config files:
+===========
+Each client, masterNode and slave Node has MR Config files -
+/etc/hadoop/conf -
+mapred-site.xml - has core MapReduce Daemon config
+hadoop-env.sh - all jvm, memory environments variables.
+
+
+The various job control options are:
+Job.submit() : to submit the job to the cluster and immediately return
+Job.waitforCompletion(boolean) : to submit the job to the cluster and wait for its completion
+
+inputSplit:-
+Map reads data from Block through splits i.e. split act as a broker between Block and Mapper.
+
+MapReduce v1:-
+client
+Job Tracker Daemon - Master Daemons
+Task Tracker Daemon - Slave Daemons
+Map and Reduce short Lived Daemons
+
+The four parameters for mappers are:
+LongWritable (input)
+text (input)
+text (intermediate output)
+IntWritable (intermediate output)
+The four parameters for reducers are:
+
+Text (intermediate output)
+IntWritable (intermediate output)
+Text (final output)
+IntWritable (final output)
+
+
+Reducer has 3 primary phases: shuffle, sort and reduce.
+The output of the reduce task is typically written to the FileSystem via OutputCollector.collect(WritableComparable, Writable)
 
 zookeeper-
 HDFS
@@ -469,3 +541,115 @@ oozie - chain together MR jobs, data import/export scripts
 impala - makes a sql first class citizen
 Hue - web interface for end users
 Flume - push real time data to HDFS
+
+sudo ~/cloudera-manager --force
+
+SequenceFile:-
+is a flat file consisting of binary key/value pairs. It is extensively used in MapReduce as input/output formats. It is also worth noting that, internally, the temporary outputs of maps are stored using SequenceFile.The SequenceFile provides a Writer, Reader and Sorter classes for writing, reading and sorting respectively.
+There are 3 different SequenceFile formats:
+Uncompressed key/value records.
+Record compressed key/value records - only 'values' are compressed here.
+Block compressed key/value records - both keys and values are collected in 'blocks' separately and compressed. The size of the 'block' is configurable.
+
+Apache Hive:-
+============
+Hive is sql layer translation on top of hadoop mapreduce and not a pure RDBMS
+Sql like interface to the data stored in hadoop - sql like syntax.
+we are converting the sql query to a mapreduce in hadoop.
+provides JDBC connectivity
+sql to mapreduce is handled by the hive using catalog of information stored in the cluster - hive metastore or hcatalog.
+hadoop deployments CDH,HDP and MapR
+
+To run a query from a batch file:-
+hive -e "show tables" instead of going into Hive cli and running the command
+"hive -f testfile.sql" will run the testfile.sql file containing the hive query.
+
+b
+hive --service hiveserver2 --hiveconf hive.server2.thrift.port=12345
+
+DriverManager.getConnection("");
+Create a table stored as text
+Insert the text file into the text table
+Do a CTAS to create the table stored as a sequence file.
+Drop the text table if desired
+Example:
+1). CREATE TABLE test_txt(field1 int, field2 string) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' stored as textfile;
+2). LOAD DATA INPATH '/path/to/file.tsv';
+3). CREATE TABLE test STORED AS SEQUENCEFILE AS SELECT * FROM test_txt;
+4). DROP TABLE test_txt;
+
+HiveServer2:- Beeline is the cli for HiveServer2 and is a JDBC client
+Supports restAPI
+Kerberos Authentication
+authorization
+multi-client concurrency
+HiveServer2 Thrift API spec
+JDBC/ODBC HiveServer2 drivers
+
+Comparing Beeline to the Hive CLI:-
+==================================
+The primary difference between the two involves how the clients connect to Hive.
+The Hive CLI, which connects directly to HDFS and the Hive Metastore, and can be used only on a host with access to those services.
+Beeline, which connects to HiveServer2 and requires access to only one .jar file: hive-jdbc-<version>-standalone.jar.Hortonworks recommends using HiveServer2 and a JDBC client (such as Beeline) as the primary way to access Hive. This approach uses SQL standard-based authorization or Ranger-based authorization. However, some users may wish to access Hive data from other applications, such as Pig. For these use cases, use the Hive CLI and storage-based authorization.
+
+Beeline modes of operation:
+Embedded(Both Beeline and hive on the same machine) and Remote(different machines.Helps in multiple concurrent clients executing queries against the same remote hive installation.supports authentication with LDAP and Kerberos).
+
+Authentication: hive.server2.authentication=kerberos or LDAP in the hive-site.xml
+
+Hiveserver2 Modes of operation:
+TCP and HTTP
+Stope the Hive server, Hcatalog and metastore daemon on each client
+sudo service hiveserver2 stop
+sudo service hive-webhcat-server stop
+sudo service hive-metastore stop
+
+hadoop fs -put {source path to text file which needs to be inserted} {destination path to text file where it needs to be present}
+hadoop fs -ls {destination path in hadoop eg. /user/hive/warehouse/myfirsttable}
+
+when an external table is dropped, it actually deletes the metadata only and not the entire data in hdfs
+Hive uses a relational database as its metastore/Hcatalog for tracking the information and hence it should never be updated manually.
+LOAD DATA LOCAL INPATH {hadoop path in hive for input file} INTO TABLE {tablename};
+describe extended {tablename};
+describe formatted {tablename};
+Hive Record Structure(SEQ-flat file binary key/value, AVRO-Json format,ORC-optimized row column format(brings in indexing)):-
+=======================
+default record format is text file or collection of text file, with a default delimiter which ^A, row format
+Create table t1_Seq(Id int, type String) Stored as SEQ;
+Create table t2_avro(Id int, type String) Stored as AVRO;
+Create table t2_orc(Id int, type String) Stored as ORC;
+Create table t2_parquet(Id int, type String) Stored as PARQUET;
+
+to write the output to a file:-
+-->Insert overwrite direcoty '/user/cloudera/hive_out' select * from euTable where year>1973;
+Hive supports view but it does not support materialized views like the RDBMS where the view updates the rows when actual table updates.NO Directory would be created for the view.
+
+data is stored in column format in AVRO,ORC,PARQUET for better data compression instead of row format.
+To have an ORC format, we need to use Tez instead of MAP-REDUCE
+datatypes in hive - INT, STRING, Binary,VARCHAR,char etc + map<int,String>,array<String>,struct<name:String,age:int>
+
+How Hive Reads data in Records or columns:-
+Input HDFS file --> INPUTFORMAT --> Deserializer(SerDe) --> Record
+How Hive writes data from Record or column to HDFS file:-
+Record --> Serializer(SerDe) --> OUTPUTFORMAT --> HDFS File
+
+Partitioning and bucketing a table in HIVE:-
+===========================================
+partition helps in distributing the load horizontally.Partitioning tables changes how Hive structures the data storage and Hive will now create subdirectories reflecting the partitioning structure.Having too many partitions is the large number of Hadoop files and directories that are created unnecessarily and overhead to NameNode since it must keep all metadata for the file system in memory.
+Bucketing is another technique for decomposing data sets into more manageable parts.The column which has to be in bucket(should be the secondary indexing one), then that particular column Id's hashing will be taken and put into each bucket for faster querying just like hashset. CLUSTERED BY (employee_id) INTO XX  BUCKETS; where XX is the number of buckets.
+Difference is bucketing divides the files by Column Name, and partitioning divides the files under By a particular value inside table
+Ex:
+CREATE TABLE mytable (name string, city string, employee_id int) PARTITIONED BY (year STRING, month STRING, day STRING) CLUSTERED BY (employee_id) INTO 256 BUCKETS;
+hive will store data in a directory hierarchy like: /user/hive/warehouse/mytable/y=2015/m=12/d=02
+
+Hue:
+===
+192.168.1.101:8888
+query editor - beewax
+
+Hbase:
+stop the thrift server and clients followed by the region servers and finally the master.
+sudo service hbase-thrift stop
+sudo service hbase-rest stop
+sudo service hbase-regionserver stop
+sudo service hbase-master stop
