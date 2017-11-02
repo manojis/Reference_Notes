@@ -363,3 +363,375 @@ CountDownLatch
 Queues & Topics
 ForkJoinPool
 Streams
+
+
+web.xml
+
+For a Java servlet to be accessible from a browser, we must tell the servlet container what servlets to deploy, and what URL's to map the servlets to. This is done in the web.xml file of your Java web application. It informs the Web/Servlet container where to look for the servlet, its respective servlet-mapping, filters and any needed additional one-time configurations.
+
+In a Spring based application, we are concerned with primarily the DispatcherServlet, that dispatches requests to the handlers, which further redirects the request to the appropriate controller method based on the handler mappings.
+
+web.xml basically acts as the Superset for all your app config files.
+
+What is a context in Java?
+
+A context can be said as the running environment that is provided to the current unit of work. It may be the environment variables, instance variables, state of the classes, and so on.
+Like ServletContext represents the servlet’s environment within its container, Similar to ApplicationContext, which represents the Spring application’s core environment within the Spring container.
+There are Servlet’s ServletContext, JSF’s FacesContext, Spring’s ApplicationContext, JNDI’s InitialContext, and all these contexts follow the Facade Pattern to Abstract the environment specific details to the end user, providing the interface methods to Interact with.
+In Spring web applications, there are two contexts that gets initialized at server startup, each of which is configured and initialized differently.
+Application Context
+Web Application Context
+
+What is ApplicationContext ?
+
+ApplicationContext defines the beans that are shared among all the servlets.
+In ApplicationContext, Spring loads applicationContext.xml file and creates the context for the whole application using ContextLoaderListener that we define in our application’s web.xml.
+applicationContext.xml is the root context configuration for every web application There will be only one application context per web application.
+If you are not explicitly declaring the context configuration file name in web.xml using the contextConfigLocation param, Spring will search for the applicationContext.xml under WEB-INF folder and throw FileNotFoundException, if it could not find this file.
+Beans that defines your business logic, database interaction and other stuff that has to be shared across servlets should reside in applicationContext.xml.
+Ex - This is the part of web.xml file
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/root-context.xml</param-value>
+</context-param>
+In the above configuration, we are asking Spring to load root-context.xml and create an Application Context from it.
+
+If contextConfigLocation is not mentioned as in the above snippet, It will by default look for /WEB-INF/applicationContext.xml
+
+At server startup ContextLoaderListener instantiates all bean defined in applicationcontext.xml assuming you have defined the following in context xml file :
+
+<import resource="test1.xml" />
+<import resource="test2.xml" />
+<import resource="test3.xml" />
+<import resource="test4.xml" />
+The beans are instantiated from all four configuration files test1.xml, test2.xml, test3.xml, test4.xml.
+
+What is WebApplicationContext ?
+
+There can be multiple WebApplicationContext in a single web application.
+It is another servlet specific context that is loaded based on the dispatcher servlets configured in the application’s web.xml file.
+Each dispatcher servlet has its own servlet-context initialized from -servlet.xml file.
+This allows us to categorize the incoming requests based on the servlet’s url-pattern and handle them accordingly, such that one of dispatcher servlets could help serving the web pages via Controller, while another one could be used to implement a stateless REST web service.
+We understand that a single web application can have multiple dispatcher-servlet configurations.
+dispatcher-servlet.xml defines the beans that are related only to that servlet. Beans that deals with servlet requests / web requests like controllers, message converters, interceptors should reside in dispatcher-servlet xml.
+Ex - If we want to change the name of the dispatcher-servlet file name or change its location, we can add init-param with contextConfigLocation as param-name, as can be seen below
+
+<servlet>
+    <servlet-name>spring</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/spring-servlet.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+    <servlet-name>spring</servlet-name>
+    <url-pattern>/</url-pattern>
+</servlet-mapping>
+So with spring-servlet init-param specified as in the above web.xml code snippet, Spring no more finds the dispatcher-servlet context file with the name spring-servlet.xml, but instead looks for the one specified as the init-param value for contextConfigLocation, i.e. spring-servlet.xml.
+
+Object creations workflow
+
+When tomcat starts, beans defined in dispatcher-servlet.xml are instantiated.
+DispatcherServlet extends FrameworkServlet. In FrameworkServlet bean instantiation takes place for dispatcher. In our case dispatcher is FrameworkServlet.
+The beans are all instantiated from all four test1.xml, test2.xml, test3.xml, test4.xml. After the completion of bean instantiation defined in applicationcontext.xml then beans defined in dispatcher-servlet.xml are instantiated.
+Instantiation order is root is application context, then FrameworkServlet.
+Difference between the two contexts
+
+ApplicationContext is the root-context that has bean configurations we might want to use (and re-use) across the entire application as singletons.
+There can be multiple WebApplicationContexts for each of the dispatcher servlets we specify in our application’s web.xml.
+WebApplicationContext internally extends ApplicationContext, and as a child inherits all the beans from its parent. So we can also override the parent bean within our WebApplicationContext.
+It’s always better to keep a clear separation between middle-tier services such as business logic components and data access classes (which we prefer defining in the ApplicationContext XML), and web-related components such as controllers and view-resolvers (which we prefer defining in the respective dispatcher-servlet‘s WebApplicationContext).
+Configuring contextLoaderListener is completely optional. We can boot up a Spring application with just the dispatcher-servlet, without even configuring contextLoaderListener (that loads up the root-context).
+
+
+applicationContext.xml defines the beans that are shared among all the servlets. If your application have more than one servlet, then defining the common resources in the applicationContext.xml would make more sense.
+
+spring-servlet.xml defines the beans that are related only to that servlet. Here it is the dispatcher servlet. So, your Spring MVC controllers must be defined in this file.
+
+There is nothing wrong in defining all the beans in the spring-servlet.xml if you are running only one servlet in your web application.
+
+Scenario 1
+
+In client application (application is not web application, e.g may be swing app)
+
+private static ApplicationContext context = new  ClassPathXmlApplicationContext("test-client.xml");
+
+context.getBean(name);
+No need of web.xml. ApplicationContext as container for getting bean service. No need for web server container. In test-client.xml there can be Simple bean with no remoting, bean with remoting.
+
+Conclusion: In Scenario 1 applicationContext and DispatcherServlet are not related.
+
+Scenario 2
+
+In a server application (application deployed in server e.g Tomcat). Accessed service via remoting from client program (e.g swing app)
+
+Define listener in web.xml
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+At server startup ContextLoaderListener instantiates beans defined in applicationcontext.xml.
+
+Assuming you have defined the following in applicationcontext.xml:
+
+<import resource="test1.xml" />
+<import resource="test2.xml" />
+<import resource="test3.xml" />
+<import resource="test4.xml" />
+The beans are instantiated from all four configuration files test1.xml, test2.xml, test3.xml, test4.xml.
+
+Conclusion: In Scenario 2 applicationContext and DispatcherServlet are not related.
+
+Scenario 3
+
+In a web application with spring MVC.
+
+In web.xml define:
+
+<servlet>
+    <servlet-name>springweb</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>    
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>springweb</servlet-name>
+    <url-pattern>*.action</url-pattern>
+</servlet-mapping>
+When tomcat starts, beans defined in springweb-servlet.xml are instantiated. DispatcherServlet extends FrameworkServlet. In FrameworkServlet bean instantiation takes place for springweb . In our case springweb is FrameworkServlet.
+
+Conclusion: In Scenario 3 applicationContext and DispatcherServlet are not related.
+
+Scenario 4
+
+In web application with spring MVC. springweb-servlet.xml for servlet and applicationcontext.xml for accessing the business service within the server program or for accessing DB service in another server program.
+
+In web.xml the following are defined:
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+
+<servlet>
+    <servlet-name>springweb</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>springweb</servlet-name>
+    <url-pattern>*.action</url-pattern>
+</servlet-mapping>
+At server startup, ContextLoaderListener instantiates beans defined in applicationcontext.xml; assuming you have declared herein:
+
+<import resource="test1.xml" />
+<import resource="test2.xml" />
+<import resource="test3.xml" />
+<import resource="test4.xml" />
+The beans are all instantiated from all four test1.xml, test2.xml, test3.xml, test4.xml. After the completion of bean instantiation defined in applicationcontext.xml then beans defined in springweb-servlet.xml are instantiated.
+
+So instantiation order is root is application context, then FrameworkServlet.
+=============================================
+web.xml: This file is part of the servlet specification. It tells the container (eg.Tomcat, your app runs on top of one) mainly where to look for Components like ServletFilters, Servlets (they do the actual work) and some configuration that you don't need to use any more. We are using it because its the only way to implement a JAVA Web Application. Most of the time, we only specify the DispatcherServlet and that could be it for web.xml.
+
+applicationContext.xml: This file is the standard Spring Context (will explain later) that defines Services and Components of your application. It will contain most of your Dependency Injection definition and a bit of configuration (imagine it like "assembly instructions" for the Classes you wrote). In a webapp scenario, you can but don't need to have it. In fact I would not use it but use imports in the contexts as this is easier to manage. It is also not loaded by default in a webapp scenario and would require a ContextLoaderListener to be found.
+
+spring-servlet.xml: The file is called this way, because you mapped the DispatcherServlet in web.xml with the servlet-name "servlet". This is by convention. This file is the entry point for Spring, when the DispatcherServlet is loaded it finds this file and starts to load its components. You could place all your services there too and have only this single xml apart from the web.xml. Nevertheless, for unit testing purposes I would advise you to create a services.xml next to it and import it which will only contain all beans that you want to write tests against. This way you can run something for testing purposes without a webapp container.
+
+Now, finally, context, what is it? Back in the days people were writing the Singleton Pattern all over the place and it was hard to manage. The idea of Spring was (simplified) to have a central "registry" that takes care of the assembly of the application, by looking at a definition of what everyone needs and then handing out these References. The term "context" is because it is the context of the application.	
+=============================================
+web.xml (deployment desciptor):  this file gets loaded on an application/web server startup (Tomcat, JBOSS etc) and it informs the Web/Servlet container about the servlet / filter classes config used <servlet>(dispatcher-servlet.xml / spring-servlet.xml loc inform goes here)</servlet>. <load-on-startup> tells the servlet container to load the specific servlet during the application startup itself ( early / eager instantiation ). If you require any information to be shared across all servlets / filters like JAAS , Spring Security, error-page you can mention it here. web.xml also tells about the Spring container class location (<listener>(applicationContext.xml  goes here)</listener>).<context-param> holds properties globally for all servlets which can be accessed using ServletContext & <init-param> holds properties for the specific servlet which can be accessed using ServletConfig objects inside your servlet classes. So basically web.xml acts as the Superset for all your app config files.
+
+applicationContext.xml : this basically defines your Spring DI / IOC bean dependencies. Normally you will just import the xml config files here instead of specifying all the config information all at a single place to maintain better readability & access. the imports will include Hibernate.xml (datasource, sessionFactory, show_sql, schemaConstruction, mapping classes etc), DataSource.xml ( inturn can refer to datasource properties for multi-env using placeholders), Spring-beans.xml (bean DI's / <context:component-scan base-package=""/> if annotations are used with Autowiring).
+
+
+dispatcher-servlet.xml : to handle web request / responses based on url patterns. Used only when Spring MVC framework is used. Contains information about the Handler Mapping , Controller, InternalResourceViewResolver etc.,
+
+
+spring-servlet.xml : this is a kind of generic name used for the servlet specific config files (dispatcher-servlet.xml for Spring MVC, faces-config.xml for JSF) & will contain information specific to the particular kind of servlets been used.
+=============================================
+dispatcher-servlet.xml is the post office for the mail in Spring town, every letter should go through them, but some people keep on sending things with the old web.xml county office (which should be only an intermediary), which is a part of the country that was once great and independent, but now is just a district. May be old and not fancy, but it worked nicely when administered appropriately, some areas of the web.xml county have roads that lead to cliffs 404 meters in deep. 
+
+applicationContext.xml is the town hall which is a little communist in that it should control all the incoming mail, but everyone knows that holes exist and you can do weird things, like sending mail to destinations in web.xml, those filty old servlets... 
+
+spring-servlet.xml is the central office for nice citizen interaction, they don´t care about the guts of running a country, they just want billboards, TV programs, radio stations...
+
+Usually the guts of the country are run at the hibernate.cfg.xml deposit placed in Persistenceland
+
+
+
+BeanFactory
+============
+The BeanFactory is the actual container which instantiates, configures, and manages a number of beans. These beans typically collaborate with one another, and thus have dependencies between themselves. These dependencies are reflected in the configuration data used by the BeanFactory (although some dependencies may not be visible as configuration data, but rather be a function of programmatic interactions between beans at runtime).
+
+ApplicationContext
+===================
+While the beans package provides basic functionality for managing and manipulating beans, often in a programmatic way, the context package adds ApplicationContext, which enhances BeanFactory functionality in a more framework-oriented style. Many users will use ApplicationContext in a completely declarative fashion, not even having to create it manually, but instead relying on support classes such as ContextLoader to automatically start an ApplicationContext as part of the normal startup process of a Java EE web-app. Of course, it is still possible to programmatically create an ApplicationContext.
+
+The basis for the context package is the ApplicationContext interface, located in the org.springframework.context package. Deriving from the BeanFactory interface, it provides all the functionality of BeanFactory. To allow working in a more framework-oriented fashion, using layering and hierarchical contexts, the context package also provides the following:
+
+MessageSource, providing access to messages in, i18n-style
+Access to resources, such as URLs and files
+Event propagation to beans implementing the ApplicationListener interface
+Loading of multiple (hierarchical) contexts, allowing each to be focused on one particular layer, for example the web layer of an application
+As the ApplicationContext includes all functionality of the BeanFactory, it is generally recommended that it be used over the BeanFactory, except for a few limited situations such as perhaps in an applet, where memory consumption might be critical, and a few extra kilobytes might make a difference. The following sections described functionality which ApplicationContext adds to basic BeanFactory capabilities.
+
+==================================================================================================
+
+Concurrency : Do you understand threads, deadlock, and starvation? What happens when multiple processes / threads are trying to modify the same data? A basic understanding of read and write locks.
+-  Networking : Do you roughly understand basic networking protocols like TCP and UDP? Do you understand the role of switches and routers?
+-  File systems : You should understand the systems you’re building upon. Do you know roughly how an OS, file system, and database work? Do you know about the various levels of caching in a modern OS?
+
+
+The web.xml is a configuration file to describe how a web application should be deployed.Java web applications use a deployment descriptor file to determine how URLs map to servlets, which URLs require authentication, and other information. This file is named web.xml, and resides in the app's WAR under the WEB-INF/ directory. web.xml is part of the servlet standard for web applications.
+
+From Servlet 3.0 onwards, Web.xml is optional, You can use @WebServlet annotation instead.
+If you are using Spring, org.springframework.web.WebApplicationInitializer can be used instead or along with web.xml.
+
+WebApplicationInitializer :
+Interface to be implemented in Servlet 3.0+ environments in order to configure the ServletContext programmatically -- as opposed to (or possibly in conjunction with) the traditional web.xml-based approach.
+
+If we dont use attribute tags in <web-app> inside the web.xml, then the one with attribute tags and without attribute tags is:-
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xmlns="http://java.sun.com/xml/ns/javaee" 
+ xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
+ version="3.0"></web-app>
+ 
+The difference between them is that the web-app tag contains the attributes in the first one and the second one doesn't. The issue is if we apply the second web.xml we won't be able to use expressions like
+${attrName}
+in our jsp-pages. They won't be replaced with the corresponding values, added to a model in a Controller in the case of Spring MVC.
+The first web.xml specifies the version of the Servlet API that the webapp requires (3.0), whereas the second one doesn't.
+In the second case, the servlet container will take that to mean it was written for an older version of the Servlet API, specifically from a version of the Servlet API that didn't use the version attribute or strictly defined namespaces. Those older versions were pre-JSP-2.0, and so don't support the JSP expression language. That means your expressions won't be substituted (you wouldn't want older app that used that expression syntax for some other reason to suddenly have them evaluated by the container in a way that the author didn't intend).
+
+For a modern webapp-you should always specify the Servlet API version you need.
+
+================================================================================
+Enable Spring auto component scanning features.
+Annotate with @Component to indicate this is class is an auto scan component.
+Put this “context:component” in bean configuration file, it means, enable auto scanning feature in Spring. The base-package is indicate where are your components stored, Spring will scan this folder and find out the bean (annotated with @Component) and register it in Spring container.
+<context:component-scan base-package="com.mycompany.maventestwebapp" />
+There are 4 types of auto components scan annotation types
+
+@Component – Indicates a auto scan component.
+@Repository – Indicates DAO component in the persistence layer.
+@Service – Indicates a Service component in the business layer.
+@Controller – Indicates a controller component in the presentation layer.
+
+All @Repository,@Service or @Controller are annotated with @Component. So we can use @component for all components for auto scannning.
+Spring will auto scan all your components with @Component annotated.
+It’s works fine, but not a good practice, for readability, you should always declare @Repository,@Service or @Controller for a specified layer to make your code more easier to read.
+================================================================================
+
+<mvc:annotation-driven /> means that you can define spring beans dependencies without actually having to specify a bunch of elements in xml or implement an interface or extend a base class. For example @Repository to tell spring that a class is a Dao without having to extend JpaDaoSupport or some other subclass of DaoSupport. Similarly @Controller tells spring that the the class specified contains methods that will handle http requests without you having to implement the Controller interface or extend a subclass that implements controller.
+
+When spring starts up it reads its xml configuration file and looks for <bean elements within it if it sees something like <bean class="com.example.Foo" /> and Foo was marked up with @Controller it knows that the class is a controller and treats it as such. By default spring assumes that all the classes it should manage are explicitly defined in the beans.xml file.
+
+Component scanning with <context:component-scan base-package="com.mycompany.maventestwebapp" /> is telling spring that it should search the class path for all the classes under com.mycompany.maventestweapp and look at each class to see if it has a @Controller, or @Repository, or @Service, or @Component and if it does then Spring will register the class with the bean factory as if you had typed <bean class="..." /> in the xml configuration files.
+
+In a typical spring mvc app you will find that there are two spring configuration files, a file that configures the application context, usually started with the spring context listener And a Spring MVC configuration file usually started with the Spring dispatcher servlet.
+Common beans such as data sources, jpa configuration, business services are defined in the application context while MVC specific configuration goes not the configuration file associated with the servlet.
+
+<context:component-scan base-package="" /> 
+tells Spring to scan those packages for Annotations.
+
+<mvc:annotation-driven> 
+registers a RequestMappingHanderMapping, a RequestMappingHandlerAdapter, and an ExceptionHandlerExceptionResolver to support the annotated controller methods like @RequestMapping, @ExceptionHandler, etc. that come with MVC.This also enables a ConversionService that supports Annotation driven formatting of outputs as well as Annotation driven validation for inputs. It also enables support for @ResponseBody which you can use to return JSON data.
+
+=================================================================================
+
+Horizontal Scaling - also referred to as "scale-out" is basically the addition of more machines or setting up a cluster or a distributed environment for your software system. This usually requires a load-balancer program which is a middle-ware component in the standard 3 tier client-server architectural model. 
+
+Load-Balancer is responsible to distribute user requests (load) among the various back-end systems/machines/nodes in the cluster. Each of these back-end machines run a copy of your software and hence capable of servicing requests. This is just one of the various functions that load balancer may be performing. Another very common responsibility is "health-check" where the load balancer uses the "ping-echo" protocol or exchanges heartbeat messages with all the servers to ensure they are up and running fine.
+
+Load-Balancer distributes load by maintaining state of each machine -- how many requests are being served by each machine, which machine is idle, which machine is over-loaded with queued requests etc. So the load balancing algorithm considers such things before redirecting the request to an appropriate server machine. It also takes into account the network overhead and might choose the server in the nearest data-center provided it is available to service the requests. 
+
+The request-response can also be done in 2 different ways:
+
+1. Load Balancer always acts as an intermediary program for every response - In this case, once the request has been handed over to the server by the load balancer, any response from the server to the user will go through the load balancer. So the server machines that are actually servicing the request will never directly interface with the user machine running the client application. The machine hosting the load balancer program will be handling all the requests/responses to and from the user.
+
+2. Load Balancer does not act as an intermediary for the responses coming from the server machine - In this case, once the server has received the request from load-balancer, it bypasses the load balancer and communicates it responses directly to the client. 
+
+Setting up a cluster and load-balancer as a front-end interface to the client application does not really complete our scale-out architecture and design. There are still lots of critical questions to be answered and a number of key design decisions to be made which will affect the overall properties of our system.
+
+We first need to identify our business goals and areas where we would like to add value. These goals will give rise to various requirements. We should then ask ourselves various questions with respect to different systemic properties.
+
+1. Will such a design address our performance requirements ? 
+
+2. What performance characteristics do we care about ? 
+Is it the overall system throughput where we are interested in serving    maximum number of requests in any given time ?
+Or is it the system's response time where we design for sending back      the response to client in as less time as possible ?
+Both these and many other types of performance characteristics are related to each other.
+
+3. Will such a design address our availability requirements ? Is the system fault-tolerant ? If so, what is the degree of it ?
+
+4. Is such a design reliable ? Does it impact the correctness ? We should not forget that 100% correctness is an implicit goal of any system.
+
+5. Are we really meeting our scalability goals ? Might be achieving the short-term or immediate ones, but what is going to happen in the long run ?
+
+All these kinds of requirements should have quantifiable measures associated with them. 
+
+We should then make important design decisions by questioning ourselves, developing prototypes, and refining the design.
+
+1. Firstly, is using load-balancer the only approach to distribute load and horizontally scale the system ?
+
+2. Do the various back-end servers or nodes communicate with each other ?
+If yes, then how does the system address the situation where one or          more nodes go down -- permanently or temporarily ?
+If yes, then how does the system address the situation where the       network connecting the nodes is down, but all the nodes are up and running ? Most importantly, do we have to differentiate between these two situations ? How ?
+3. Whether or not the back-end nodes communicate with each other, does our system need to maintain consistent data across all the nodes ? What level of consistency do we care about ? Is it that
+At any point in time, data across all the nodes should be consistent.
+Or later some point in time, data across all the nodes will be consistent. If so, then what is this "later" ? When and how do all the nodes converge to a consistent state ? How will we achieve "total-order" of operations across all the nodes ? Do we have a global clock ? If we are relying on every node's local clock, then how do we synchronize the clocks of all machines. They can easily seem to regress or a machine with an out of order clock might join the cluster. As a consequence,  we may ignore the latest data, and consider old/stale data as the latest one.
+4. What cluster setup do we have to design for ? 
+Is it a "replica" cluster, where data on each node is replicated to some or every other node. In case of former, what is the replication factor, and how do we decide it ?
+Or is it a sharded cluster where cluster is divided into various shards or units. A shard is a designated group of nodes. Each shard takes care of a particular partition of data. Data across shards is not replicated, but each shard can adopt replication strategy within itself.
+Whatever distributed system we design, it should ideally be able to answer the above and many other similar questions. 
+
+All this is what makes a distributed system so interesting and challenging to design and implement. 
+
+Vertical Scaling -  also referred to as "scale-up" approach is an attempt to increase the capacity of a single machine :
+By adding more processing power
+By adding more storage
+More memory etc
+Summary:
+
+What is important here is to understand the differences between these 2 scaling approaches, identify what suits our requirements, and see if the application really fits the model we choose.
+
+As you would have understood by now, horizontal scaling comes with overhead in the form of cluster setup, management, and maintenance costs and complexities. The design gets increasingly complex and programming model changes. 
+
+So simply throwing in new hardware and adding more nodes or machines is not the way to start. First, see if the requirements can be met by increasing the capacity or tuning characteristics of a single machine. If not, then go with the scale-out approach or a combination of both.
+==============================================================================
+
+Controller Based Exception Handling
+
+Using @ExceptionHandler
+
+You can add extra (@ExceptionHandler) methods to any controller to specifically handle exceptions thrown by request handling (@RequestMapping) methods in the same controller. Such methods can:
+
+Handle exceptions without the @ResponseStatus annotation (typically predefined exceptions that you didn’t write)
+Redirect the user to a dedicated error view
+Build a totally custom error response
+==================================================================================
+http://stackoverflow.com/questions/15818047/spring-namespace-vs-contextconfiglocation-init-parameters-in-web-xml/15825207#15825207
+
+http://stackoverflow.com/questions/7451325/spring-mvc-what-are-a-context-and-namespace/7451389#7451389
+
+http://docs.spring.io/spring/docs/3.2.2.RELEASE/spring-framework-reference/html/beans.html#context-create
+
+http://www.javaworld.com/article/2824163/application-performance/stability-patterns-applied-in-a-restful-architecture.html
+http://www.baeldung.com/httpclient-connection-management
+
+http://docs.spring.io/spring-data/cassandra/docs/2.0.0.M1/reference/html/
+http://docs.spring.io/spring-data/cassandra/docs/1.0.2.RELEASE/reference/html/cassandra.core.html
+
+http://www.baeldung.com/spring-data-cassandra-tutorial
+
+https://examples.javacodegeeks.com/enterprise-java/spring/spring-data-cassandra-example/
+
+http://www.journaldev.com/2651/spring-mvc-exception-handling-controlleradvice-exceptionhandler-handlerexceptionresolver
+https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc
+https://www.mkyong.com/spring-mvc/spring-mvc-exceptionhandler-example/
+http://www.baeldung.com/exception-handling-for-rest-with-spring
