@@ -94,3 +94,28 @@ byName : Autowiring that can be done by property name
 byType : property type as autowired
 constructor: It is similar to byType and it is property is in constructor
 autodetect :  Spring is allowed to select autowiring from byType or constructor 
+
+
+https://dzone.com/articles/how-to-make-a-stateless-session-less-authenticatio  - (correct url does not contain 'n' at the end)
+https://dzone.com/articles/restful-api-authentication-basics-1?fromrel=true
+https://dzone.com/articles/getting-started-dropwizard-0?fromrel=true
+
+https://www.javacodegeeks.com/2017/03/set-secure-rest-api-spring.html
+
+Spring Security:-
+====================
+Provide capabilities for login and logout
+control access to a link based on the role of the user.
+Provide the ability to hide certain portion of a page if a user does not have appropriate privileges.
+Link to a database or LDAP for authentication
+
+Spring achieves the security by using a ServletFilter. This Filter intercepts all requests and implements the security related tasks. The only filter that needs to be implemented is the DelegatingFilterProxy. This filter delegates the request to instances of java.servlet.Filter.
+
+User accesses a URL on a web application
+The web application refers to web.xml
+The web.xml matches the URL pattern
+The control is redirected to DispatcherServlet in Spring framework
+Spring framework finds that the all URLs are secured and hence displays login page to the user
+The user enters his login name and password
+Spring framework validates the login name and password by using the entries in Spring configuration XML and redirects to the accessed original URL
+
