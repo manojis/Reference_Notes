@@ -45,6 +45,127 @@ JAXWS AND JAXRS
 JAX-WS: soap, RPC style and document style.
 JAX-RS: Restful, two types- Jersey and RestEasy.
 
+Compile time classpath vs Runtime Classpath:-
+
+So, what is a classpath? A set of all the classes (and jars with classes) that are required by your application. But there are two, or actually three distinct classpaths:
+
+compile-time classpath. Contains the classes that you’ve added in your IDE (assuming you use an IDE) in order to compile your code. In other words, this is the classpath passed to “javac” (though you may be using another compiler).
+runtime classpath. Contains the classes that are used when your application is running. That’s the classpath passed to the “java” executable. In the case of web apps this is your /lib folder, plus any other jars provided by the application server/servlet container
+test classpath – this is also a sort of runtime classpath, but it is used when you run tests. Tests do not run inside your application server/servlet container, so their classpath is a bit different
+Maven defines dependency scopes that are really useful for explaining the differences between the different types of classpaths. Read the short description of each scope.
+
+Many people assume that if they successfully compiled the application with a given jar file present, it means that the application will run fine. But it doesn’t – you need the same jars that you used to compile your application to be present on your runtime classpath as well. Well, not necessarily all of them, and not necessarily only them. A few examples:
+
+you compile the code with a given library on the compile-time classpath, but forget to add it to the runtime classpath. The JVM throws NoClasDefFoundError, which means that a class is missing, which was present when the code was compiled. This error is a clear sign that you are missing a jar file on your runtime classpath that you have on your compile-time classpath. It is also possible that a jar you depend on in turn depends on a jar that you don’t have anywhere. That’s why libraries (must) have their dependencies declared, so that you know which jars to put on your runtime classpath
+containers (servlet containers, application servers) have some libraries built-in. Normally you can’t override the built-in dependencies, and even when you can, it requires additional configuration. So, for example, you use Tomcat, which provides the servlet-api.jar. You compile your application with the servlet-api.jar on your compile-time classpath, so that you can use HttpServletRequest in your classes, but do not include it in your WEB-INF/lib folder, because tomcat will put its own jar in the runtime classpath. If you duplicate the dependency, you may get bizarre results, as classloaders get confused.
+a framework you are using (let’s say spring-mvc) relies on another library to do JSON serialization (usually Jackson). You don’t actually need Jackson on your compile-time classpath, because you are not referring to any of its classes or even spring classes that refer to them. But spring needs Jackson internally, so the jackson jar must be in WEB-INF/lib (runtime classpath) for JSON serialization to work.
+The cases might be complicated even further, when you consider compile-time constants and version mismatches, but the general point is this: the classpaths that you use for compiling and for running the application are different, and you should be aware of that.
+
+Compile-time dependency: You need the dependency in your CLASSPATH to compile your artifact. They are produced because you have some kind of "reference" to the dependency hardcoded in your code, such as calling new for some class, extending or implementing something (either directly or indirectly), or a method call using the direct reference.method() notation.
+Run-time dependency: You need the dependency in your CLASSPATH to run your artifact. They are produced because you execute code that accesses the dependency (either in a hardcoded way or via reflection or whatever).
+Although compile-time dependency usually implies run-time dependency, you can have a compile-time only dependency. This is based on the fact that Java only links class dependencies on first access to that class, so if you never access a particular class at run-time because a code path is never traversed, Java will ignore both the class and its dependencies.
+
+Example of this
+
+In C.java (generates C.class):
+
+package dependencies;
+public class C { }
+In A.java (generates A.class):
+
+package dependencies;
+public class A {
+    public static class B {
+        public String toString() {
+            C c = new C();
+            return c.toString();
+        }
+    }
+    public static void main(String[] args) {
+        if (args.length > 0) {
+            B b = new B();
+            System.out.println(b.toString());
+        }
+    }
+}
+In this case, A has a compile-time dependency on C through B, but it will only have a run-time dependency on C if you pass some parameters when executing java dependencies.A, as the JVM will only try to solve B's dependency on C when it gets to execute B b = new B(). This feature allows you to provide at runtime only the dependencies of the classes that you use in your code paths, and ignore the dependencies of the rest of the classes in the artifact.
+
+The compiler needs the right classpath in order to compile calls to a library (compile time dependencies)
+
+The JVM needs the right classpath in order to load the classes in the library you are calling (runtime dependencies).
+
+They may be different in a couple of ways:
+
+1) if your class C1 calls library class L1, and L1 calls library class L2, then C1 has a runtime dependency on L1 and L2, but only a compile time dependency on L1.
+
+2) if your class C1 dynamically instantiates an interface I1 using Class.forName() or some other mechanism, and the implementing class for interface I1 is class L1, then C1 has a runtime dependency on I1 and L1, but only a compile time dependency on I1.
+
+Other "indirect" dependencies which are the same for compile-time and run-time:
+
+3) your class C1 extends library class L1, and L1 implements interface I1 and extends library class L2: C1 has a compile-time dependency on L1, L2, and I1.
+
+4) your class C1 has a method foo(I1 i1) and a method bar(L1 l1) where I1 is an interface and L1 is a class that takes a parameter which is interface I1: C1 has a compile-time dependency on I1 and L1.
+
+Basically, to do anything interesting, your class needs to interface with other classes and interfaces in the classpath. The class/interface graph formed by that set of library interfaces yields the compile-time dependency chain. The library implementations yield the run-time dependency chain. Note that the run-time dependency chain is run-time dependent or fail-slow: if the implementation of L1 sometimes depends on instantiating an object of class L2, and that class only gets instantiated in one particular scenario, then there's no dependency except in that scenario
+
+--->>>  A compile-time dependency is generally required at runtime. In maven, a compile scoped dependency will be added to the classpath on runtime (e.g. in wars they will be copied to WEB-INF/lib).
+
+----->>>> It is not, however, strictly required; for instance, we may compile against a certain API, making it a compile-time dependency, but then at runtime include an implementation that also includes the API.
+
+There may be fringe cases where the project requires a certain dependency to compile but then the corresponding code is not actually needed, but these will be rare.
+
+On the other hand, including runtime dependencies that are not needed at compile-time is very common. For instance, if you're writing a Java EE 6 application, you compile against the Java EE 6 API, but at runtime, any Java EE container can be used; it's this container that provides the implementation.
+
+Compile-time dependencies can be avoided by using reflection. For instance, a JDBC driver can be loaded with a Class.forName and the actual class loaded be configurable through a configuration file
+===================================================================================================================
+Abstract class vs Interface:-
+=============================
+The abstract class can inherit features from another concrete or abstract class, and can enrich further behavior while adding interfaces.
+interfaces cannot be instantiated.
+An interface does not contain any constructors.
+All of the methods in an interface are abstract.
+An interface is not extended by a class; it is implemented by a class.
+An interface can extend multiple interfaces.
+A class can implement more than one interface at a time.
+A class can extend only one class, but implement many interfaces.
+An interface can extend another interface, in a similar way as a class can extend another class.
+
+===================================================================================================================
+Thread per connection vs Thread per Request:-
+=============================================
+
+Thread-per-request scales better than thread-per-connection.
+Java threads are rather expensive, typically using a 1Mb memory segment each, whether they are active or idle. If you give each connection its own thread, the thread will typically sit idle between successive requests on the connection. Ultimately the framework needs to either stop accepting new connections ('cos it can't create any more threads) or start disconnecting old connections (which leads to connection churn if / when the user wakes up).
+HTTP connection requires significantly less resources than a thread stack, although there is a limit of 64K open connections per IP address, due to the way that TCP/IP works.
+By contrast, in the thread-per-request model, the thread is only associated while a request is being processed. That usually means that the service needs fewer threads to handle the same number of users. And since threads use significant resources, that means that the service will be more scalable.
+(And note that thread-per-request does not mean that the framework has to close the HTTP connection after each request ...)
+Having said that, the thread-per-request model is not ideal when there are long pauses during the processing of each request. (And it is especially non-ideal when the service uses the comet approach which involves keeping the reply stream open for a long time.) To support this, the Servlet 3.0 spec provides an "asynchronous servlet" mechanism which allows a servlet's request method to suspend its association with the current request thread. This releases the thread to go and process another request.
+If the web application can be designed to use the "asynchronous" mechanism, it is likely to be more scalable than either thread-per-request or thread-per-connection.
+
+FOLLOWUP:-
+Let's assume a single webpage with 1000 images. This results in 1001 HTTP requests. Further let's assume HTTP persistent connections is used. With the TPR strategy, this will result in 1001 thread pool management operations (TPMO). With the TPC strategy, this will result in 1 TPMO... Now depending on the actual costs for a single TPMO, I can imagine scenarios where TPC may scale better then TPR.
+I think there are some things you haven't considered:
+The web browser faced with lots of URLs to fetch to complete a page may well open multiple connections.
+With TPC and persistent connections, the thread has to wait for the client to receive the response and send the next request. This wait time could be significant if the network latency is high.
+The server has no way of knowing when a given (persistent) connection can be closed. If the browser doesn't close it, it could "linger", tying down the TPC thread until the server times out the connection.
+The TPMO overheads are not huge, especially when you separate the pool overheads from the context switch overheads. (You need to do that, since TPC is going to incur context switches on a persistent connections; see above.)
+My feeling is that these factors are likely to outweigh the TPMO saving of having one thread dedicated to each connection.
+==
+Thread per request will create a thread for each HTTP Request the server receives .
+Thread per connection will reuse the same HTTP Connection from multiple requests(keep-alive) .AKA HTTP persistent connection but please note that this supported only from HTTP 1.1
+Thread Per Request is faster as most web container use Thread Pooling.
+The number of maximum parallel connections you should set on the number of cores on your server. More cores => more parallel threads .
+
+
+
+
+https://blog.idrsolutions.com/2015/01/java-8-default-methods-explained-5-minutes/
+https://dzone.com/articles/concurrenthashmap-in-java8
+lambda expressions: It is an anonymous function that allows you to pass methods as arguments or simply, a mechanism that helps you remove a lot of boilerplate code.They have no access modifier(private, public or protected), no return type declaration and no name.
+
+
+Tomcat8.exe //TS// ++JvmOptions -Dwfm.keyStore="%ID_DSP_HOME%\certs\serviceKeystore.j
+
 Hadoop interview questions:-
 ==========================
 1. Understand vision - how the data will be used
@@ -64,6 +185,8 @@ Hadoop interview questions:-
 15. Plan out users/groups/authentication/authorization and any data encryption needed.
 16. Plan the load tasks, and data integrity checks
 
+
+===================================================================================
  Write a program to find the minimum node element in a Linked List.
 2.  You were given a list of meeting  and their timings, Write a program to find out the minimum number of conference rooms required without overlapping the meetings. // I think that's the zeist of the questions, it was litter longer though
 3.  The following program increases/decreases the value of A and B until A is equal to X and B is equal to Y. Find the bug:
