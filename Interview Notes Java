@@ -63,3 +63,371 @@ Hadoop interview questions:-
 14. Factor in number of environments - dev/test/QA/prod parallel/production..and cluster size
 15. Plan out users/groups/authentication/authorization and any data encryption needed.
 16. Plan the load tasks, and data integrity checks
+
+ Write a program to find the minimum node element in a Linked List.
+2.  You were given a list of meeting  and their timings, Write a program to find out the minimum number of conference rooms required without overlapping the meetings. // I think that's the zeist of the questions, it was litter longer though
+3.  The following program increases/decreases the value of A and B until A is equal to X and B is equal to Y. Find the bug:
+public static void MakeTheNumbersMatch(int a, int b, int x, int y)
+    {
+        while(a!=x && b!=y)
+        {
+            if(a> x)
+            {
+                a--;
+            }
+            else
+            {
+                a++;
+            }
+            if(b>y)
+            {
+                b--;
+            }
+            else
+            {
+                b++;
+            }
+        }
+    }
+1. Find square root of number without using sqrt function
+2. Given a directed graph. Construct another graph from given graph such that if path exists from vertices A to vertices B and from B to C, then path from A to C and from C to A also should exists.
+3. Write function which takes array of elements A and array of elements B and outputs (A-B)U(B-A).
+4. Implement hashmap on your own. Write good hashing function for string.
+===============================================================================
+https://dgeekspot.wordpress.com/2015/11/18/9-programming-questions-interviewers-love-to-ask/
+https://www.interviewcake.com/google-interview-questions
+http://www.geeksforgeeks.org/tag/microsoft/
+
+http://bigocheatsheet.com/
+http://javaconceptoftheday.com/big-o-notations-tutorials/
+http://javapapers.com/core-java/address-of-a-java-object/
+
+http://www.codenlearn.com/2011/10/simple-merge-sort.html
+http://www.codenlearn.com/p/table-of-contents.html
+https://examples.javacodegeeks.com/core-java/quicksort-algorithm-in-java-code-example/
+
+================================================================================
+Ques1: WAP to merge 3 sorted array 
+Ques2: they gave a linked list code and we have to identify the bug in it and write the correct code 
+Ques3: Something about tree traversal
+===============================================================================
+(1) A function to compute minimum of unsorted numbers in an array of size N. this is a simple loop to find the min. How many times the assignment is executed? 
+(2) Find and fix the bugs - this function is to remove head of a singly linked list. 
+void RemoveHead(node * head) 
+{ 
+free(head); 
+head = head->next; 
+} 
+(3) Design a printserver. (there were some criteria)
+=================================================================================
+A@u98952345 for an object.That is the object name and System.identityHashCode() separated by the '@' character. What the identity hash code represents is implementation-specific. It often is the initial memory address of the object, but the object can be moved in memory by the VM over time. So (briefly) you can't rely on it being anything.
+Getting the memory addresses of variables is meaningless within Java, since the JVM is at liberty to implement objects and move them as it seems fit (your objects may/will move around during garbage collection etc.)
+Integer.toBinaryString() will give you an integer in binary form.
+==================================================================================
+https://careers.microsoft.com/help/studentinterview
+You have two intersecting linked lists. Describe a function that returns a pointer to the node where they intersect. 
+Traverse a binary tree using recursion (and later, iteration)
+"Cracking the Coding Interview" 
+
+https://careers.microsoft.com/help/interview
+https://www.glassdoor.com/Interview/Microsoft-Software-Development-Engineer-Interview-Questions-EI_IE1651.0,9_KO10,39.htm
+https://www.glassdoor.com/Interview/Microsoft-Software-Development-Engineer-II-Interview-Questions-EI_IE1651.0,9_KO10,42.htm
+https://www.glassdoor.com/Interview/Microsoft-Interview-Questions-E1651.htm?filter.jobTitleExact=Software+Development+Engineer+%28SDE%29+II
+https://www.glassdoor.com/Interview/Microsoft-Software-Development-Engineer-I-Interview-Questions-EI_IE1651.0,9_KO10,41.htm
+
+
+Martin Fowler defines Microservices as a subset of Service Oriented Architecture (SOA). It sounds like this is what you have potentially.icroservices are just more granular (and decoupled) varieties of the web services most places have to provide a little more control on the Ops side of the world.
+A web service is service which exposes an API over HTTP (although when people say web service they often mean something with a SOAP API, which ironically has very little to do with the web). A microservice is an independently deployable service modelled around a business domain. people build microservices using messaging or event-driven APIs, or using non-HTTP backed RPC mechanisms. So I could have a microservice which is also a webservice, but a webservice might not be a microservice, and a microservice might not be a webservice
+
+given a binary tree and given a level,write a routine to print all the values of the tree nodes in that level
+
+http://www.cs.utah.edu/~chu/html/programming/java/java_online_store_down.htm
+
+java security:-
+http://www.oracle.com/technetwork/java/javase/tech/index-jsp-136007.html
+http://docs.oracle.com/javase/7/docs/technotes/guides/security/
+
+
+
+
+Senior Software Engineer
+
+
+
+Given a set S of n real numbers and another real number x, determine whether or not there exist. two elements in S whose sum is exactly x.
+
+
+Given a list of numbers (a fixed list) and another list, write a function which determines whether any element in the second list appears in the fixed list.
+
+
+use a trie data structure to store words. every node contains a list of all letters (pointers to the same node structure) and flags for each letter to indicate the length of the word. Write a method to insert into this kind of data structure. What would you use to store each node? 
+
+(Step-1): You should have practical understanding of the Algorithms (e.g. When to use BackTracking, When to Use Divide and Conquer, Why double hashing required?, Where brute force concept can be applied?) (50 Hours).
+
+
+
+(Step-2): You should have practical understanding of Data Structures e.g. (Practical use cases related to :when to use circular buffer , or when to use adjacently list or the combination of both or something else to solve the problem ).
+(50 Hours)
+
+
+
+(Step-3) : You must practice several coding problems to implement the things which learn from Step-1 , and Step-2 (you may do the following choose any coding language for the choice of yours (C, C++ or Java or Python or PHP or any one else ).
+(50 Hours)
+
+
+(Step-4): Solving the problem doesn't mean just to solve it, but to understand the best way to solve it e.g. The given technical problem can use various ways to come to solution, and you might want to use the optimal one. (How you connect the given solution with the computing/memory resources e.g. Memory/Processing Power) 
+
+
+dynamic programming, greedy algorithms
+
+https://www.reddit.com/r/cscareerquestions/comments/3hvnxr/microsoft_onsite_hiring_event/
+
+=========================================================================
+http://tsiege.github.io/blog/2014/05/02/tech-interview-cheat-sheet/  - IMPORTANT
+http://bigocheatsheet.com/
+
+=============================================================================================================
+
+https://www.udacity.com/course/intro-to-algorithms--cs215
+http://mydailyjava.blogspot.com/2013/12/sunmiscunsafe.html?_sm_au_=iFV5R27s6vnPtFQR
+https://dzone.com/articles/understanding-sunmiscunsafe
+=============================================================================================================
+https://javarevisited.blogspot.com/2012/06/20-design-pattern-and-software-design.html?_sm_au_=i6VN3ndTPrZW0BNH
+http://www.bullraider.com/java/java-oo-design/interview-qustions/264-java-design-pattern-interview-questions-part-1	
+==============================================================================
+
+
+https://www.coursera.org/learn/algorithm-design-analysis/home/week/1
+https://www.coursera.org/learn/algorithm-design-analysis-2/home/week/1
+https://www.coursera.org/learn/developer-iot
+
+https://www.coursera.org/learn/introduction-to-algorithms
+https://www.coursera.org/learn/java-data-structures-algorithms-2/home/welcome
+
+https://www.coursera.org/learn/comparch/home/week/1
+
+https://www.coursera.org/learn/cloud-computing
+https://www.coursera.org/learn/cloud-computing-2
+
+https://www.coursera.org/learn/cloud-applications-part1
+https://www.coursera.org/learn/cloud-applications-2
+https://www.coursera.org/learn/cloud-networking
+https://www.coursera.org/learn/cloud-computing-capstone
+
+
+1) Rotate Array, Reverse Words in a String
+2) Evaluate Reverse Polish Notation (Stack)
+3) Isomorphic Strings
+4) Word Ladder (BFS), Word Ladder II (BFS)
+5) Median of Two Sorted Arrays
+5) Kth Largest Element in an Array
+6) Wildcard Matching, Regular Expression Matching
+7) Merge Intervals, Insert Interval
+9) Two Sum, Two Sum II, Two Sum III, 3Sum, 4Sum
+10) 3Sum Closest
+11) String to Integer
+12) Merge Sorted Array
+13) Valid Parentheses
+13) Longest Valid Parentheses
+14) Implement strStr()
+15) Minimum Size Subarray Sum
+16) Search Insert Position
+17) Longest Consecutive Sequence
+18) Valid Palindrome
+19) ZigZag Conversion
+20) Add Binary 
+21) Length of Last Word
+22) Triangle
+24) Contains Duplicate: I, II, III
+25) Remove Duplicates from Sorted Array: I, II, Remove Element , Move Zeroes
+27) Longest Substring Without Repeating Characters
+28) Longest Substring that contains 2 unique characters [Google]
+28) Substring with Concatenation of All Words
+29) Minimum Window Substring
+31) Find Minimum in Rotated Sorted Array: I, II
+32) Search in Rotated Array:I, II
+33) Min Stack
+34) Majority Element: I, II
+35) Bulls and Cows 
+36) Largest Rectangle in Histogram
+37) Longest Common Prefix [Google]
+38) Largest Number
+39) Simplify Path
+40) Compare Version Numbers
+41) Gas Station
+44) Pascal's Triangle: I, II
+45) Container With Most Water
+45) Candy [Google]
+45) Trapping Rain Water
+46) Count and Say
+47) Search for a Range
+48) Basic Calculator, Basic Calculator II
+49) Group Anagrams
+50) Shortest Palindrome
+51) Rectangle Area
+52) Summary Ranges
+53) Increasing Triplet Subsequence
+54) Get Target Using Number List And Arithmetic Operations 
+55) Reverse Vowels of a String 
+56) Flip Game, Flip Game II
+57) Missing Number, Find the duplicate number, First Missing Positive 
+58) Valid Anagram, Group Shifted Strings
+59) Top K Frequent Elements
+60) Find Peak Element
+61) Word Pattern, Word Pattern II
+62) H-Index , H-Index II
+63) Palindrome Pairs
+64) One Edit Distance
+65) Scramble String
+66) First Bad Version
+67) Integer to English Words
+68) Text Justification 
+69) Remove Invalid Parentheses
+70) Intersection of Two Arrays, Intersection of Two Arrays II
+71) Sliding Window Maximum, Moving Average from Data Stream
+72) Guess Number Higher or Lower
+
+2. Matrix
+
+Common methods to solve matrix related problem include DFS, BFS, dynamic programming, etc.
+
+Classic Problems:
+1) Set Matrix Zeroes
+2) Spiral Matrix
+2) Spiral Matrix II
+3) Search a 2D Matrix
+3) Search a 2D Matrix II
+4) Rotate Image [Palantir]
+5) Valid Sudoku 
+6) Minimum Path Sum (DP) [Google]
+7) Unique Paths (DP) [Google]
+7) Unique Paths II (DP)
+8) Number of Islands (DFS/BFS), Number of Islands II (Disjoint Set), Number of Connected Components in an Undirected Graph
+9) Surrounded Regions (BFS)
+10) Maximal Rectangle
+10) Maximal Square
+11) Word Search (DFS)
+11) Word Search II
+13) Range Sum Query 2D – Immutable
+14) Longest Increasing Path in a Matrix (DFS)
+15) Shortest Distance from All Buildings
+16) Game of Life
+17) Paint House, Paint House II
+18) Sudoku Solver (DFS)
+19) Walls and Gates (DFS/BFS)
+20) Tic-Tac-Toe
+21) Best Meeting Point
+
+Classic Problems:
+0) Implement a Stack Using an Array
+1) Add Two Numbers
+2) Reorder List
+3) Linked List Cycle
+4) Copy List with Random Pointer
+5) Merge Two Sorted Lists
+6) Odd Even Linked List
+7) Remove Duplicates from Sorted List
+7) Remove Duplicates from Sorted List II
+8) Partition List
+9) LRU Cache
+10) Intersection of Two Linked Lists
+11) Remove Linked List Elements
+12) Swap Nodes in Pairs
+13) Reverse Linked List, Reverse Linked List II, Print Linked List in Reversed Order
+14) Remove Nth Node From End of List (Fast-Slow Pointers)
+15) Implement Stack using Queues
+15) Implement Queue using Stacks
+16) Palindrome Linked List
+17) Implement a Queue using an Array
+18) Delete Node in a Linked List
+19) Reverse Nodes in k-Group
+
+4.1 Tree
+
+1) Binary Tree Traversal:
+
+Preorder, Inorder, Postorder, Level Order, Level Order II, Vertical Order
+2) Invert Binary Tree
+3) Kth Smallest Element in a BST
+4) Binary Tree Longest Consecutive Sequence
+5) Validate Binary Search Tree
+6) Flatten Binary Tree to Linked List
+7) Path Sum (DFS or BFS)
+7) Path Sum II (DFS) 
+8) Construct Binary Tree from Inorder and Postorder Traversal
+8) Construct Binary Tree from Preorder and Inorder Traversal
+9) Convert Sorted Array to Binary Search Tree [Google]
+10) Convert Sorted List to Binary Search Tree [Google]
+11) Minimum Depth of Binary Tree
+12) Binary Tree Maximum Path Sum *
+13) Balanced Binary Tree
+14) Symmetric Tree
+15) Binary Search Tree Iterator 
+16) Binary Tree Right Side View
+17) Lowest Common Ancestor of a Binary Search Tree
+18) Lowest Common Ancestor of a Binary Tree
+19) Verify Preorder Serialization of a Binary Tree
+20) Populating Next Right Pointers in Each Node 
+21) Populating Next Right Pointers in Each Node II 
+21) Unique Binary Search Trees (DP)
+21) Unique Binary Search Trees II (DFS)
+22) Sum Root to Leaf Numbers (DFS)
+23) Count Complete Tree Nodes 
+24) Closest Binary Search Tree Value
+25) Binary Tree Paths
+26) Maximum Depth of Binary Tree
+27 Recover Binary Search Tree
+28) Same Tree
+29) Serialize and Deserialize Binary Tree
+30) Inorder Successor in BST
+31) Find Leaves of Binary Tree
+32) Largest BST Subtree
+
+4.2 Heap
+
+1) Merge k sorted arrays [Google]
+2) Merge k Sorted Lists *
+3) Find Median from Data Stream
+4) Meeting Rooms II, Meeting Rooms
+5) Range Addition
+
+4.3 Trie
+
+1) Implement Trie (Prefix Tree)
+2) Add and Search Word - Data structure design (DFS)
+
+4.4 Segment Tree
+
+1) Range Sum Query - Mutable
+2) The Skyline Problem
+
+Sorting
+
+1) Mergesort
+2) Quicksort
+3) InsertionSort.
+4) Maximum Gap (Bucket Sort)
+5) Sort Colors (Counting Sort)
+
+
+Design a game of battleship
+Design a game of Boggle
+Design a traffic light system for one intersection
+Copy contents of one link list to another where the destination node size is different than the original node size but overall link list size is same. Don't worry about space allocation. 
+
+Write a function to calculate build order given a project with a list of dependencies that also need to be built  
+Write a program to generate a "Unique Ticket" for each request. The number of requests could be quite large - up to a million per second
+
+write code to convert text to variable length bit encoding similar to Huffman coding. 
+Determine frequency of occurrence for each letter in the text assign it a bit code so that more frequent characters get shorter bit codes.  
+Design an algorithm to find K biggest numbers in the array.
+b. Design an algorithm to find a shortest path between two given words of same lengths so that every word differs from preceding and succeeding word in the path by exactly one character.
+c. Design a system that processes events in real time.  
+Write code that will return the nth digit of the Fibonacci sequence.
+Write code that will take a string of numbers (12,345) and return the spoken word version of the number (twelve thousand three hundred forty five).
+Write code that will validate a binary search tree.  
+How to sort multiple arrays gigabytes in size
+How to organize an airport
+What is quicksort
+How to find the best score going through a mystery book where each page has a score and different options for the next page until the end  
+
