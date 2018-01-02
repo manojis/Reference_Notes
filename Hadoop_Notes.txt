@@ -20,6 +20,7 @@ from Jupyter Notebook
 =====================
 !hdfs dfs -mkdir assignment1
 !hdfs dfs -touchz  assignment1/test.txt
+!hdfs dfs -put assignment1/test.txt
 !hdfs dfs -ls -R -t
 !hdfs dfs -chmod 700 assignment1/test.txt
 !hdfs dfs -cat assignment1/test.txt | head -n 10
