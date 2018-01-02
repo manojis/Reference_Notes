@@ -16,6 +16,23 @@ hadoop fs -put purchases.txt newFolder - for inserting the data into hadoop fold
 hadoop fs -ls newFolder  // shows the content of the file in the newFolder
 hadoop fs -get {hadoop folder path} {localdisk folderpath\purchases.txt} - for retrieving the data from hadoop cluster
 
+from Jupyter Notebook
+=====================
+!hdfs dfs -mkdir assignment1
+!hdfs dfs -touchz  assignment1/test.txt
+!hdfs dfs -ls -R -t
+!hdfs dfs -chmod 700 assignment1/test.txt
+!hdfs dfs -cat assignment1/test.txt | head -n 10
+!hdfs dfs -mv assignment1/test.txt assignment1/test2.txt
+
+!hdfs fsck /data/wiki/en_articles_part/articles-part/ -blocks -locations
+!hdfs fsck /data/wiki/en_articles_part/articles-part/ -files -blocks 
+&
+!hdfs fsck -blockId blk_1073741825_1001
+
+to get the live data nodes and details regarding the hadoop storage:-
+!hdfs dfsadmin -report
+
 =====================================
 for creating a jar file - jar -cvf {jar name.jar} *.class
 
